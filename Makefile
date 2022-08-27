@@ -1,9 +1,20 @@
+CC      = cc
+CFLAGS  = -std=c99 -ggdb -O0
+LDFLAGS = -L. -lraylib -lm
+
+sources = musical.c chord_finder.c
+headers = config.h chord_finder.h util.h
+objects = $(sources:.c=.o)
+
 all: musical
 
 clean:
-	rm -f musical
+	rm -f musical $(objects)
 
-musical: musical.c
-	cc -o $@ $< -std=c99 -L. -lraylib -lm -ggdb -O0
+musical: $(objects)
+	$(CC) -o $@ $(objects) $(LDFLAGS)
+
+%.o: %.c $(headers)
+	$(CC) -c $(CFLAGS) $<
 
 .PHONY: all clean
