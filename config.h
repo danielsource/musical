@@ -3,15 +3,15 @@
 #define COLOR_WHITE                   (Color) {0xff, 0xff, 0xff, 0xff}
 #define COLOR_BLACK                   (Color) {0x33, 0x33, 0x33, 0xff}
 #define COLOR_PIANO                   (Color) {0xdb, 0x7a, 0x7a, 0xff}
-#define COLOR_PIANO_WHITE_KEY_DOWN    (Color) {0x33, 0x33, 0x33, 0xff}
+#define COLOR_PIANO_WHITE_KEY_DOWN    (Color) {0xdc, 0xdc, 0xdc, 0xff}
 #define COLOR_PIANO_WHITE_KEY_PRESSED (Color) {0x1b, 0xa7, 0xd1, 0xff}
 #define COLOR_PIANO_WHITE_KEY_MARKED  (Color) {0x1b, 0xd1, 0xa0, 0xff}
-#define COLOR_PIANO_BLACK_KEY_DOWN    (Color) {0x33, 0x33, 0x33, 0xff}
-#define COLOR_PIANO_BLACK_KEY_PRESSED (Color) {0x1b, 0xa7, 0xd1, 0xff}
-#define COLOR_PIANO_BLACK_KEY_MARKED  (Color) {0x1b, 0xd1, 0xa0, 0xff}
+#define COLOR_PIANO_BLACK_KEY_DOWN    (Color) {0x75, 0x75, 0x75, 0xff}
+#define COLOR_PIANO_BLACK_KEY_PRESSED (Color) {0x37, 0x7d, 0x92, 0xff}
+#define COLOR_PIANO_BLACK_KEY_MARKED  (Color) {0x37, 0x92, 0x7a, 0xff}
 
-Key keys[] = {
-	{.key = KEY_SPACE, .pressed_func = clear_notes, .arg = {0}},
+Keybinding keybindings[] = {
+	{.key = KEY_SPACE, .pressed_func = clear_marked_notes, .arg = {0}},
 	{.key = KEY_Q,     .pressed_func = play_note, .arg = {24}},
 	{.key = KEY_TWO,   .pressed_func = play_note, .arg = {25}},
 	{.key = KEY_W,     .pressed_func = play_note, .arg = {26}},
@@ -44,8 +44,8 @@ Key keys[] = {
 	{.key = KEY_COMMA, .pressed_func = play_note, .arg = {48}},
 };
 
-Rectangle piano = {-1, -1, 300, 80};
-Rectangle screen = {-1, -1, 330, 150};
+Rectangle piano = {-1, -1, 315, 80};
+Rectangle screen = {-1, -1, 350, 195};
 char *program_name = "musical";
 char *program_title = "musical";
 int first_note = 24; // C4

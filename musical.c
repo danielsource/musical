@@ -4,7 +4,6 @@
 #include <stdlib.h>
 
 #include "chord_finder.h"
-#include "mouse_click.h"
 #include "raylib.h"
 #include "timer.h"
 #include "util.h"
@@ -28,12 +27,15 @@ typedef struct {
   void (*pressed_func)(Arg *arg);
   void (*down_func)(Arg *arg);
   Arg arg;
-} Key;
+} Keybinding;
 
-void clear_notes(Arg *arg);
+void clear_marked_notes(Arg *arg);
 void down_note(Arg *arg);
 void mark_note(Arg *arg);
 void play_note(Arg *arg);
+
+// Preprocessor macro to handle mouse input
+#include "mouse_click.h"
 
 // Configurable global variables
 #include "config.h"
@@ -43,15 +45,18 @@ bool is_black_key[12] = {
 };
 
 Button *buttons;
-bool *down_notes;
-bool *marked_notes;
+Color *key_colors;
+Rectangle keyboard;
 Timer *pressed_notes;
 int marked_notes_count;
-bool clicked;
+bool *down_notes, *marked_notes;
+bool help_pressed_notes = true, help_clear_marked_notes = true,
+     help_mark_marked_notes = false;
 
-void clear_notes(Arg *arg) {
+void clear_marked_notes(Arg *arg) {
   for (int i = first_note; i <= last_note; i++) marked_notes[i] = false;
   marked_notes_count = 0;
+  help_clear_marked_notes = false;
 }
 
 void down_note(Arg *arg) { down_notes[arg->i] = true; }
@@ -62,19 +67,25 @@ void mark_note(Arg *arg) {
     marked_notes_count++;
   else
     marked_notes_count--;
+  help_mark_marked_notes = false;
 }
 
 void play_note(Arg *arg) {
+  static int count = 0;
+  if (++count == 3) {
+    help_pressed_notes = false;
+    help_mark_marked_notes = true;
+  }
   if (IsKeyDown(KEY_LEFT_CONTROL)) mark_note(arg);
   start_timer(&pressed_notes[arg->i], pressed_note_duration);
 }
 
 void handle_keyboard_input(void) {
-  for (int i = 0; i < LENGTH(keys); i++)
-    if (IsKeyPressed(keys[i].key))
-      keys[i].pressed_func(&keys[i].arg);
-    else if (IsKeyDown(keys[i].key) && keys[i].down_func)
-      keys[i].down_func(&keys[i].arg);
+  for (int i = 0; i < LENGTH(keybindings); i++)
+    if (IsKeyPressed(keybindings[i].key))
+      keybindings[i].pressed_func(&keybindings[i].arg);
+    else if (IsKeyDown(keybindings[i].key) && keybindings[i].down_func)
+      keybindings[i].down_func(&keybindings[i].arg);
 }
 
 void update_piano(void) {
@@ -89,19 +100,13 @@ void update_piano(void) {
 
   piano.x = screen.width / 2 - piano.width / 2;
   piano.y = screen.height / 2 - piano.height / 2 + 20;
+  keyboard.x = piano.x + 10;
+  keyboard.y = piano.y + piano.height / 2 - 5;
+  keyboard.width = piano.width - 20;
+  keyboard.height = piano.height / 2 + 5;
   clicked = false;
-  Rectangle keyboard = {piano.x + 10, piano.y + piano.height / 2 - 5,
-                        piano.width - 20, piano.height / 2 + 5};
   Rectangle white_key = {keyboard.x, keyboard.y, keyboard.width / white_keys,
                          keyboard.height};
-  DrawRectangleRounded(piano, 0.15f, 30, COLOR_PIANO);
-  DrawRectangleRec(keyboard, GREEN);
-
-  Color text_color = Fade(BLACK, 0.2f);
-  int text_size = 30;
-  char *text = program_title;
-  DrawText(text, piano.x + piano.width / 2 - MeasureText(text, text_size) / 2,
-           piano.y + 3, text_size, text_color);
 
   for (int i = first_note; i <= last_note; i++) {
     Rectangle *key = &buttons[i].rect;
@@ -116,16 +121,76 @@ void update_piano(void) {
     key->x = white_key.x;
     key->width = white_key.width;
     key->height = white_key.height;
-    DrawRectangleRec(buttons[i].rect, COLOR_WHITE);
-    DrawRectangle(key->x, key->y, 1, key->height, LIGHTGRAY);
-    DrawRectangle(key->x + key->width - 1, key->y, 1, key->height, LIGHTGRAY);
     white_key.x += white_key.width;
   }
   for (int i = first_note; i <= last_note; i++) {
-    if (!is_black_key[i % 12])
+    if (!is_black_key[i % 12]) {
       MOUSE_CLICK_HANDLER;
-    else
-      DrawRectangleRec(buttons[i].rect, COLOR_BLACK);
+      key_colors[i] = COLOR_WHITE;
+      if (!is_timer_done(&pressed_notes[i]))
+        key_colors[i] = COLOR_PIANO_WHITE_KEY_PRESSED;
+      else if (marked_notes[i])
+        key_colors[i] = COLOR_PIANO_WHITE_KEY_MARKED;
+      else if (down_notes[i])
+        key_colors[i] = COLOR_PIANO_WHITE_KEY_DOWN;
+    } else {
+      key_colors[i] = COLOR_BLACK;
+      if (!is_timer_done(&pressed_notes[i]))
+        key_colors[i] = COLOR_PIANO_BLACK_KEY_PRESSED;
+      else if (marked_notes[i])
+        key_colors[i] = COLOR_PIANO_BLACK_KEY_MARKED;
+      else if (down_notes[i])
+        key_colors[i] = COLOR_PIANO_BLACK_KEY_DOWN;
+    }
+  }
+}
+
+void draw_piano(void) {
+  DrawRectangleRounded(piano, 0.15f, 30, COLOR_PIANO);
+  DrawRectangleRec(keyboard, GREEN);
+
+  Color text_color = Fade(BLACK, 0.2f);
+  int text_size = 30;
+  char *text = program_title;
+  DrawText(text, piano.x + piano.width / 2 - MeasureText(text, text_size) / 2,
+           piano.y + 3, text_size, text_color);
+  text_size = 10;
+
+  if (help_pressed_notes) {
+    text = "Use o teclado do computador ou o mouse para tocar o";
+    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+    text = "teclado musical";
+    DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+  } else if (marked_notes_count && help_clear_marked_notes) {
+    text = "Aperte barra de espaço para limpar as notas marcadas";
+    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+  } else if (!marked_notes_count && help_mark_marked_notes) {
+    text = "Segure a tecla Ctrl enquanto toca as teclas ou clique com o";
+    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+    text = "botão direito para marcar notas";
+    DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+  }
+
+  for (int i = first_note; i <= last_note; i++) {
+    if (is_black_key[i % 12]) continue;
+    Rectangle *key = &buttons[i].rect;
+    DrawRectangleRec(buttons[i].rect, key_colors[i]);
+    DrawRectangle(key->x, key->y, 1, key->height,
+                  (Color){0xac, 0xac, 0xac, 0xff});
+    DrawRectangle(key->x + key->width - 1, key->y, 1, key->height,
+                  (Color){0xac, 0xac, 0xac, 0xff});
+    DrawRectangle(key->x, key->y, 1, key->height, Fade(key_colors[i], 0.5f));
+    DrawRectangle(key->x + key->width - 1, key->y, 1, key->height,
+                  Fade(key_colors[i], 0.5f));
+  }
+  for (int i = first_note; i <= last_note; i++) {
+    if (!is_black_key[i % 12]) continue;
+    DrawRectangleRec(buttons[i].rect, key_colors[i]);
   }
 }
 
@@ -139,22 +204,31 @@ void run(void) {
   update_piano();
   BeginDrawing();
   ClearBackground(COLOR_BACKGROUND);
+  draw_piano();
   EndDrawing();
 }
 
 int main(void) {
   buttons = calloc(last_note + 1, sizeof(Button));
+  key_colors = calloc(last_note + 1, sizeof(Color));
   down_notes = calloc(last_note + 1, sizeof(bool));
   marked_notes = calloc(last_note + 1, sizeof(bool));
   pressed_notes = calloc(last_note + 1, sizeof(Timer));
-  for (int i = 0; i < LENGTH(keys); i++)
-    if (keys[i].pressed_func == play_note) keys[i].down_func = down_note;
+  for (int i = 0; i < LENGTH(keybindings); i++)
+    if (keybindings[i].pressed_func == play_note)
+      keybindings[i].down_func = down_note;
+  for (int i = first_note; i <= last_note; i++) {
+    buttons[i].left_click_func = play_note;
+    buttons[i].right_click_func = mark_note;
+    buttons[i].arg.i = i;
+  }
   SetTraceLogLevel(LOG_WARNING);
   InitWindow(screen.width, screen.height, program_title);
   SetTargetFPS(target_fps);
   while (!WindowShouldClose()) run();
   CloseWindow();
   free(buttons);
+  free(key_colors);
   free(down_notes);
   free(marked_notes);
   free(pressed_notes);
