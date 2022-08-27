@@ -1,11 +1,14 @@
-#define COLOR_BACKGROUND        (Color) {0x7c, 0xbf, 0xda, 0xff}
-#define COLOR_FOREGROUND        (Color) {0x00, 0x00, 0x00, 0xff}
-#define COLOR_WHITE             (Color) {0xff, 0xff, 0xff, 0xff}
-#define COLOR_BLACK             (Color) {0x33, 0x33, 0x33, 0xff}
-#define COLOR_PIANO             (Color) {0xdb, 0x7a, 0x7a, 0xff}
-#define COLOR_PIANO_KEY_DOWN    (Color) {0x33, 0x33, 0x33, 0xff}
-#define COLOR_PIANO_KEY_PRESSED (Color) {0x1b, 0xa7, 0xd1, 0xff}
-#define COLOR_PIANO_KEY_MARKED  (Color) {0x1b, 0xd1, 0xa0, 0xff}
+#define COLOR_BACKGROUND              (Color) {0x7c, 0xbf, 0xda, 0xff}
+#define COLOR_FOREGROUND              (Color) {0x00, 0x00, 0x00, 0xff}
+#define COLOR_WHITE                   (Color) {0xff, 0xff, 0xff, 0xff}
+#define COLOR_BLACK                   (Color) {0x33, 0x33, 0x33, 0xff}
+#define COLOR_PIANO                   (Color) {0xdb, 0x7a, 0x7a, 0xff}
+#define COLOR_PIANO_WHITE_KEY_DOWN    (Color) {0x33, 0x33, 0x33, 0xff}
+#define COLOR_PIANO_WHITE_KEY_PRESSED (Color) {0x1b, 0xa7, 0xd1, 0xff}
+#define COLOR_PIANO_WHITE_KEY_MARKED  (Color) {0x1b, 0xd1, 0xa0, 0xff}
+#define COLOR_PIANO_BLACK_KEY_DOWN    (Color) {0x33, 0x33, 0x33, 0xff}
+#define COLOR_PIANO_BLACK_KEY_PRESSED (Color) {0x1b, 0xa7, 0xd1, 0xff}
+#define COLOR_PIANO_BLACK_KEY_MARKED  (Color) {0x1b, 0xd1, 0xa0, 0xff}
 
 Key keys[] = {
 	{.key = KEY_SPACE, .pressed_func = clear_notes, .arg = {0}},
@@ -44,7 +47,7 @@ Key keys[] = {
 Rectangle piano = {-1, -1, 300, 80};
 Rectangle screen = {-1, -1, 330, 150};
 char *program_name = "musical";
-char *program_title = "Musical";
+char *program_title = "musical";
 int first_note = 24; // C4
 int last_note = 60;  // C6
 short target_fps = 60;

@@ -3,7 +3,7 @@ CFLAGS  = -std=c99 -ggdb -O0
 LDFLAGS = -L. -lraylib -lm
 
 sources = musical.c chord_finder.c timer.c
-headers = config.h chord_finder.h timer.h util.h
+headers = config.h chord_finder.h timer.h util.h mouse_click.h
 objects = $(sources:.c=.o)
 
 all: musical
