@@ -2,8 +2,8 @@ CC      = cc
 CFLAGS  = -std=c99 -ggdb -O0
 LDFLAGS = -L. -lraylib -lm
 
-sources = musical.c chord_finder.c
-headers = config.h chord_finder.h util.h
+sources = musical.c chord_finder.c timer.c
+headers = config.h chord_finder.h timer.h util.h
 objects = $(sources:.c=.o)
 
 all: musical
