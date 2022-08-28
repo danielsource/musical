@@ -17,7 +17,6 @@ static Button *last_button;
                  (!last_button ||                                           \
                   last_button && last_button->arg.i == buttons[i].arg.i)) { \
         down_note(&(Arg){i});                                               \
-        printf("%p\n", last_button);                                        \
         last_button = &buttons[i];                                          \
         clicked = true;                                                     \
       } else if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {                \

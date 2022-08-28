@@ -1,6 +1,6 @@
 typedef struct {
-	double start;
-	double lifetime;
+  double start;
+  double lifetime;
 } Timer;
 
 double get_elapsed(Timer *t);

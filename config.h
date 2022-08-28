@@ -45,7 +45,7 @@ Keybinding keybindings[] = {
 };
 
 Rectangle piano = {-1, -1, 315, 80};
-Rectangle screen = {-1, -1, 350, 195};
+Rectangle screen = {-1, -1, 350, 210};
 char *program_name = "musical";
 char *program_title = "musical";
 int first_note = 24; // C4

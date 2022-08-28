@@ -1,10 +1,14 @@
+// TODO: add sounds
+// TODO: portuguese/english language support
+
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "chord_finder.h"
 #include "raylib.h"
+
+#include "chord_finder.h"
 #include "timer.h"
 #include "util.h"
 
@@ -99,7 +103,7 @@ void update_piano(void) {
   int white_keys = note_total - black_keys;
 
   piano.x = screen.width / 2 - piano.width / 2;
-  piano.y = screen.height / 2 - piano.height / 2 + 20;
+  piano.y = screen.height / 2 - piano.height / 2;
   keyboard.x = piano.x + 10;
   keyboard.y = piano.y + piano.height / 2 - 5;
   keyboard.width = piano.width - 20;
@@ -146,6 +150,31 @@ void update_piano(void) {
 }
 
 void draw_piano(void) {
+  char chord_name[64] = {0};
+  char *chord_detail = NULL;
+  int intervals[10];
+  int j = 0;
+  for (int i = first_note; i <= last_note && j < LENGTH(intervals); i++)
+    if ((marked_notes_count && marked_notes[i]) ||
+        ((!marked_notes_count && down_notes[i])))
+      intervals[j++] = i;
+  if (j > 0) {
+    get_chord_name(chord_name, LENGTH(chord_name), intervals, j);
+    for (char *s = chord_name; *s; s++) {
+      if (*s == '\n') {
+        *s = '\0';
+        chord_detail = ++s;
+        break;
+      }
+    }
+    DrawText(chord_name, piano.x, (screen.height / 2 - piano.height / 2) - 48,
+             20, COLOR_FOREGROUND);
+    if (chord_detail)
+      DrawText(chord_detail, piano.x,
+               (screen.height / 2 - piano.height / 2) - 26, 20,
+               COLOR_FOREGROUND);
+  }
+
   DrawRectangleRounded(piano, 0.15f, 30, COLOR_PIANO);
   DrawRectangleRec(keyboard, GREEN);
 
