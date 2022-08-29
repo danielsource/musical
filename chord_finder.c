@@ -169,12 +169,9 @@ bool get_chord_name(Chord *dest, int *intervals, size_t len, Language lang) {
 
   char chord_signature[CHORD_SIGNATURE_LENGTH] = {0};
   for (int i = 1; i < len; i++) {
-    int size = strlen(chord_signature) + 1,
-        note = abs(intervals[i] - intervals[i - 1]);
+    int note = abs(intervals[i] - intervals[i - 1]);
     char s[3];
     snprintf(s, 3, "%d", note);
-    size += strlen(s);
-    if (i != 1) size += strlen("-");
     if (i != 1) strncat(chord_signature, "-", CHORD_SIGNATURE_LENGTH - 1);
     strncat(chord_signature, s, CHORD_SIGNATURE_LENGTH - 1);
   }
