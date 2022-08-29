@@ -1,10 +1,15 @@
+#define CHORD_NAME_LENGTH 64
+#define CHORD_PARENTHESIS_LENGTH 64
+#define CHORD_SIGNATURE_LENGTH 32
+
 typedef struct {
-  char *signature;
-  char *name;
+  char signature[CHORD_SIGNATURE_LENGTH];
+  char name[CHORD_NAME_LENGTH];
+  char parenthesis[CHORD_PARENTHESIS_LENGTH];
   int root;
 } Chord;
 
-extern const Chord chords[];
-extern const char *const notes[];
+extern const Chord chords[LANGUAGE_LAST][74];
+extern const char *const notes[LANGUAGE_LAST][12];
 
-void get_chord_name(char *dest, int dest_len, int *intervals, int len);
+bool get_chord_name(Chord *dest, int *intervals, size_t len, Language lang);

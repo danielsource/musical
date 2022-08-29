@@ -5,9 +5,11 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "raylib.h"
 
+#include "language.h"
 #include "chord_finder.h"
 #include "timer.h"
 #include "util.h"
@@ -37,12 +39,20 @@ void clear_marked_notes(Arg *arg);
 void down_note(Arg *arg);
 void mark_note(Arg *arg);
 void play_note(Arg *arg);
+void cycle_language(Arg *arg);
+void draw_help_pt(void);
+void draw_help_en(void);
 
 // Preprocessor macro to handle mouse input
 #include "mouse_click.h"
 
 // Configurable global variables
 #include "config.h"
+
+void (*draw_help_funcs[LANGUAGE_LAST])(void) = {
+    [PORTUGUESE] = draw_help_pt,
+    [ENGLISH] = draw_help_en,
+};
 
 bool is_black_key[12] = {
     [1] = true, [3] = true, [6] = true, [8] = true, [10] = true,
@@ -82,6 +92,12 @@ void play_note(Arg *arg) {
   }
   if (IsKeyDown(KEY_LEFT_CONTROL)) mark_note(arg);
   start_timer(&pressed_notes[arg->i], pressed_note_duration);
+}
+
+void cycle_language(Arg *arg) {
+  strcpy(program_title, program_name);
+  SetWindowTitle(program_title);
+  language = MOD(language + arg->i, LANGUAGE_LAST);
 }
 
 void handle_keyboard_input(void) {
@@ -149,61 +165,36 @@ void update_piano(void) {
   }
 }
 
-void draw_piano(void) {
-  char chord_name[64] = {0};
-  char *chord_detail = NULL;
+void draw_chord_name(void) {
+  Chord chord = {0};
   int intervals[10];
-  int j = 0;
-  for (int i = first_note; i <= last_note && j < LENGTH(intervals); i++)
+  size_t len = 0;
+  for (int i = first_note; i <= last_note && len < LENGTH(intervals); i++)
     if ((marked_notes_count && marked_notes[i]) ||
         ((!marked_notes_count && down_notes[i])))
-      intervals[j++] = i;
-  if (j > 0) {
-    get_chord_name(chord_name, LENGTH(chord_name), intervals, j);
-    for (char *s = chord_name; *s; s++) {
-      if (*s == '\n') {
-        *s = '\0';
-        chord_detail = ++s;
-        break;
-      }
-    }
-    DrawText(chord_name, piano.x, (screen.height / 2 - piano.height / 2) - 48,
-             20, COLOR_FOREGROUND);
-    if (chord_detail)
-      DrawText(chord_detail, piano.x,
-               (screen.height / 2 - piano.height / 2) - 26, 20,
-               COLOR_FOREGROUND);
-  }
+      intervals[len++] = i;
+  if (len < 1) return;
+  else if (len == 1)
+    snprintf(chord.name, CHORD_NAME_LENGTH, "%s",
+             notes[language][intervals[0] % 12]);
+  else if (!get_chord_name(&chord, intervals, len, language))
+    return;
+  DrawText(chord.name, piano.x, (screen.height / 2 - piano.height / 2) - 48, 20,
+           COLOR_FOREGROUND);
+  if (chord.parenthesis[0])
+    DrawText(chord.parenthesis, piano.x,
+             (screen.height / 2 - piano.height / 2) - 26, 20, COLOR_FOREGROUND);
+}
 
+void draw_piano(void) {
   DrawRectangleRounded(piano, 0.15f, 30, COLOR_PIANO);
   DrawRectangleRec(keyboard, GREEN);
 
   Color text_color = Fade(BLACK, 0.2f);
+  char *text = program_name;
   int text_size = 30;
-  char *text = program_title;
   DrawText(text, piano.x + piano.width / 2 - MeasureText(text, text_size) / 2,
            piano.y + 3, text_size, text_color);
-  text_size = 10;
-
-  if (help_pressed_notes) {
-    text = "Use o teclado do computador ou o mouse para tocar o";
-    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
-             Fade(COLOR_FOREGROUND, 0.35f));
-    text = "teclado musical";
-    DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
-             Fade(COLOR_FOREGROUND, 0.35f));
-  } else if (marked_notes_count && help_clear_marked_notes) {
-    text = "Aperte barra de espaço para limpar as notas marcadas";
-    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
-             Fade(COLOR_FOREGROUND, 0.35f));
-  } else if (!marked_notes_count && help_mark_marked_notes) {
-    text = "Segure a tecla Ctrl enquanto toca as teclas ou clique com o";
-    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
-             Fade(COLOR_FOREGROUND, 0.35f));
-    text = "botão direito para marcar notas";
-    DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
-             Fade(COLOR_FOREGROUND, 0.35f));
-  }
 
   for (int i = first_note; i <= last_note; i++) {
     if (is_black_key[i % 12]) continue;
@@ -223,6 +214,32 @@ void draw_piano(void) {
   }
 }
 
+void draw_help_pt(void) {
+  char *text;
+  int text_size = 10;
+  if (help_pressed_notes) {
+    text = "Use o teclado do computador ou o mouse para tocar o";
+    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+    text = "teclado musical";
+    DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+  } else if (marked_notes_count && help_clear_marked_notes) {
+    text = "Aperte barra de espaço para limpar as notas marcadas";
+    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+  } else if (!marked_notes_count && help_mark_marked_notes) {
+    text = "Segure a tecla Ctrl enquanto toca as teclas ou clique com o";
+    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+    text = "botão direito para marcar notas";
+    DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+  }
+}
+
+void draw_help_en(void) {}
+
 void run(void) {
   screen.x = GetWindowPosition().x;
   screen.y = GetWindowPosition().y;
@@ -233,7 +250,9 @@ void run(void) {
   update_piano();
   BeginDrawing();
   ClearBackground(COLOR_BACKGROUND);
+  draw_chord_name();
   draw_piano();
+  draw_help_funcs[language]();
   EndDrawing();
 }
 
@@ -251,6 +270,8 @@ int main(void) {
     buttons[i].right_click_func = mark_note;
     buttons[i].arg.i = i;
   }
+  snprintf(program_title, LENGTH(program_title),
+           "%s - Press F1 to change language", program_name);
   SetTraceLogLevel(LOG_WARNING);
   InitWindow(screen.width, screen.height, program_title);
   SetTargetFPS(target_fps);
