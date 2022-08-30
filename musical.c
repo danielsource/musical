@@ -1,5 +1,4 @@
-// TODO: add sounds
-// TODO: portuguese/english language support
+// musical: see the chords being played on the piano keyboard
 
 #include <limits.h>
 #include <math.h>
@@ -39,6 +38,7 @@ void clear_marked_notes(Arg *arg);
 void down_note(Arg *arg);
 void mark_note(Arg *arg);
 void play_note(Arg *arg);
+void transpose_notes(Arg *arg);
 void cycle_language(Arg *arg);
 void draw_help_pt(void);
 void draw_help_en(void);
@@ -58,12 +58,12 @@ bool is_black_key[12] = {
     [1] = true, [3] = true, [6] = true, [8] = true, [10] = true,
 };
 
-Button *buttons;
-Color *key_colors;
+Button buttons[last_note + 1];
+Color key_colors[last_note + 1];
 Rectangle keyboard;
-Timer *pressed_notes;
+Timer pressed_notes[last_note + 1];
 int marked_notes_count;
-bool *down_notes, *marked_notes;
+bool down_notes[last_note + 1], marked_notes[last_note + 1];
 bool help_pressed_notes = true, help_clear_marked_notes = true,
      help_mark_marked_notes = false;
 
@@ -73,7 +73,9 @@ void clear_marked_notes(Arg *arg) {
   help_clear_marked_notes = false;
 }
 
-void down_note(Arg *arg) { down_notes[arg->i] = true; }
+void down_note(Arg *arg) {
+  if (!IsKeyDown(KEY_LEFT_CONTROL)) down_notes[arg->i] = true;
+}
 
 void mark_note(Arg *arg) {
   marked_notes[arg->i] = !marked_notes[arg->i];
@@ -90,8 +92,25 @@ void play_note(Arg *arg) {
     help_pressed_notes = false;
     help_mark_marked_notes = true;
   }
-  if (IsKeyDown(KEY_LEFT_CONTROL)) mark_note(arg);
+  if (IsKeyDown(KEY_LEFT_CONTROL)) {
+    help_mark_marked_notes = false;
+    mark_note(arg);
+    return;
+  }
   start_timer(&pressed_notes[arg->i], pressed_note_duration);
+}
+
+void transpose_notes(Arg *arg) {
+  int i = abs(arg->i);
+  size_t len = (last_note - first_note + 1);
+  size_t n = (len - i) * sizeof(bool);
+  if (arg->i >= 0) {
+    memmove(&marked_notes[first_note + i], &marked_notes[first_note], n);
+    memset(&marked_notes[first_note], false, i * sizeof(bool));
+  } else {
+    memmove(&marked_notes[first_note], &marked_notes[first_note + i], n);
+    memset(&marked_notes[len - i], false, i * sizeof(bool));
+  }
 }
 
 void cycle_language(Arg *arg) {
@@ -173,7 +192,8 @@ void draw_chord_name(void) {
     if ((marked_notes_count && marked_notes[i]) ||
         ((!marked_notes_count && down_notes[i])))
       intervals[len++] = i;
-  if (len < 1) return;
+  if (len < 1)
+    return;
   else if (len == 1)
     snprintf(chord.name, CHORD_NAME_LENGTH, "%s",
              notes[language][intervals[0] % 12]);
@@ -257,11 +277,6 @@ void run(void) {
 }
 
 int main(void) {
-  buttons = calloc(last_note + 1, sizeof(Button));
-  key_colors = calloc(last_note + 1, sizeof(Color));
-  down_notes = calloc(last_note + 1, sizeof(bool));
-  marked_notes = calloc(last_note + 1, sizeof(bool));
-  pressed_notes = calloc(last_note + 1, sizeof(Timer));
   for (int i = 0; i < LENGTH(keybindings); i++)
     if (keybindings[i].pressed_func == play_note)
       keybindings[i].down_func = down_note;
@@ -277,10 +292,5 @@ int main(void) {
   SetTargetFPS(target_fps);
   while (!WindowShouldClose()) run();
   CloseWindow();
-  free(buttons);
-  free(key_colors);
-  free(down_notes);
-  free(marked_notes);
-  free(pressed_notes);
   return EXIT_SUCCESS;
 }

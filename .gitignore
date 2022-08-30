@@ -1,7 +1,4 @@
-.vscode
 *.o
 libraylib.a
 musical
 raylib.h
-raymath.h
-rlgl.h

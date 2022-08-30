@@ -3,7 +3,7 @@
 about
 -----
 
-A graphical program made with [raylib](https://www.raylib.com) to find
+A graphical program made with [raylib](https://www.raylib.com) to see
 the names of chords played on the piano keyboard. It is possible to use
 the keyboard or the mouse as input. The config.h file has all the
 [keybindings](config.h#L13-L46) in an array.

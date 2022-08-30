@@ -11,7 +11,9 @@
 #define COLOR_PIANO_BLACK_KEY_MARKED  (Color) {0x37, 0x92, 0x7a, 0xff}
 
 Keybinding keybindings[] = {
-	{.key = KEY_F1,    .pressed_func = cycle_language, .arg = {+1}},
+	{.key = KEY_F2,    .pressed_func = cycle_language, .arg = {+1}},
+	{.key = KEY_LEFT,  .pressed_func = transpose_notes, .arg = {-1}},
+	{.key = KEY_RIGHT, .pressed_func = transpose_notes, .arg = {+1}},
 	{.key = KEY_SPACE, .pressed_func = clear_marked_notes, .arg = {0}},
 	{.key = KEY_Q,     .pressed_func = play_note, .arg = {24}},
 	{.key = KEY_TWO,   .pressed_func = play_note, .arg = {25}},
@@ -51,6 +53,5 @@ Rectangle screen = {-1, -1, 350, 210};
 char *program_name = "musical";
 char program_title[64] = "musical";
 double pressed_note_duration = 0.3f;
-int first_note = 24; // C4
-int last_note = 60;  // C6
+enum { first_note = 0, last_note = 36 };
 short target_fps = 60;
