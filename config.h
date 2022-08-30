@@ -12,6 +12,7 @@
 
 Keybinding keybindings[] = {
 	{.key = KEY_F2,    .pressed_func = cycle_language, .arg = {+1}},
+	{.key = KEY_TAB,   .pressed_func = toggle_accidental, .arg = {0}},
 	{.key = KEY_LEFT,  .pressed_func = transpose_notes, .arg = {-1}},
 	{.key = KEY_RIGHT, .pressed_func = transpose_notes, .arg = {+1}},
 	{.key = KEY_SPACE, .pressed_func = clear_marked_notes, .arg = {0}},
@@ -48,10 +49,11 @@ Keybinding keybindings[] = {
 };
 
 Language language = PORTUGUESE;
+NoteRepresentation accidental = SHARP;
 Rectangle piano = {-1, -1, 315, 80};
 Rectangle screen = {-1, -1, 350, 210};
 char *program_name = "musical";
 char program_title[64] = "musical";
 double pressed_note_duration = 0.3f;
-enum { first_note = 0, last_note = 36 };
+enum { first_note = 24, last_note = 60 };
 short target_fps = 60;

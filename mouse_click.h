@@ -7,7 +7,7 @@ static Button *last_button;
         !CheckCollisionPointRec(GetMousePosition(), last_button->rect))     \
       last_button = &(Button){.arg.i = NOTE_NULL};                          \
     if (!clicked &&                                                         \
-        CheckCollisionPointRec(GetMousePosition(), buttons[i].rect))        \
+        CheckCollisionPointRec(GetMousePosition(), buttons[i].rect)) {      \
       if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {                        \
         buttons[i].left_click_func(&buttons[i].arg);                        \
         last_button = &buttons[i];                                          \
@@ -24,4 +24,5 @@ static Button *last_button;
         last_button = &buttons[i];                                          \
         clicked = true;                                                     \
       }                                                                     \
+    }                                                                       \
   } while (0)

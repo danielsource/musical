@@ -1,5 +1,5 @@
-CC      = cc
-CFLAGS  = -std=c99 -ggdb -O0
+CC      = clang
+CFLAGS  = -std=c99 -ggdb -O0 -Wall -Wextra -Wpedantic
 LDFLAGS = -L. -lraylib -lm
 
 sources = musical.c chord_finder.c timer.c

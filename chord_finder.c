@@ -54,14 +54,14 @@ const Chord chords[LANGUAGE_LAST][74] =
           {"4-4-1", "Menor-Maior com Sétima", "(Primeira Inversão)", 3},
           {"4-1-3", "Menor-Maior com Sétima", "(Segunda Inversão)", 2},
           {"1-3-4", "Menor-Maior com Sétima", "(Terceira Inversão)", 1},
-          {"4-4-3", "Aumentado com Sétima Maior", {0}, 0},
-          {"4-3-1", "Aumentado com Sétima Maior", "(Primeira Inversão)", 3},
-          {"3-1-4", "Aumentado com Sétima Maior", "(Segunda Inversão)", 2},
-          {"1-4-4", "Aumentado com Sétima Maior", "(Terceira Inversão)", 1},
-          {"4-4-2", "Aumentado", {0}, 0},
-          {"4-2-2", "Aumentado", "(Primeira Inversão)", 3},
-          {"2-2-4", "Aumentado", "(Segunda Inversão)", 2},
-          {"2-4-4", "Aumentado", "(Terceira Inversão)", 1},
+          {"4-4-3", "Aumentada com Sétima Maior", {0}, 0},
+          {"4-3-1", "Aumentada com Sétima Maior", "(Primeira Inversão)", 3},
+          {"3-1-4", "Aumentada com Sétima Maior", "(Segunda Inversão)", 2},
+          {"1-4-4", "Aumentada com Sétima Maior", "(Terceira Inversão)", 1},
+          {"4-4-2", "Aumentada", {0}, 0},
+          {"4-2-2", "Aumentada", "(Primeira Inversão)", 3},
+          {"2-2-4", "Aumentada", "(Segunda Inversão)", 2},
+          {"2-4-4", "Aumentada", "(Terceira Inversão)", 1},
           {"2-5", "sus2", {0}, 0},
           {"7-7-2", "sus2", {0}, 0},
           {"7-7-1", "sus2 Menor", {0}, 0},
@@ -82,7 +82,7 @@ const Chord chords[LANGUAGE_LAST][74] =
           {"4-6-3", "Menor com Nona Dominante", "(Faltando Quinta)", 0},
           {"3-4-3-3", "Menor com Nona", {0}, 0},
           {"3-7-3", "Menor com Nona", "(Faltando Quinta)", 0},
-          {"4-3-3-5", "Maior com Sétima Dominante e Nona Sustenido", 0}},
+          {"4-3-3-5", "Maior com Sétima Dominante e Nona Sustenido", {0}, 0}},
      [ENGLISH] = {{"0", "Perfect Unison", {0}, 0},
                   {"1", "Minor Second", "(Semitone)", 0},
                   {"2", "Major Second", "(Tone)", 0},
@@ -158,13 +158,16 @@ const Chord chords[LANGUAGE_LAST][74] =
                   {"3-7-3", "Minor 9th", "(Missing 5th)", 0},
                   {"4-3-3-5", "Dominant 7 Sharp 9th", {0}, 0}}};
 
-const char *const notes[LANGUAGE_LAST][12] = {
-    [PORTUGUESE] = {"Dó", "Dó#", "Ré", "Ré#", "Mi", "Fá", "Fá#", "Só", "Só#",
-                    "Lá", "Lá#", "Sí"},
-    [ENGLISH] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#",
-                 "B"}};
+const char *const notes[LANGUAGE_LAST][NOTE_REPRESENTATION_LAST][12] = {
+    [PORTUGUESE] = {{"Dó", "Dó#", "Ré", "Ré#", "Mi", "Fá", "Fá#", "Sol", "Sol#",
+                     "Lá", "Lá#", "Si"},
+                    {"Dó", "Réb", "Ré", "Mib", "Mi", "Fá", "Solb", "Sol", "Láb",
+                     "Lá", "Sib", "Si"}},
+    [ENGLISH] = {
+        {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"},
+        {"C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"}}};
 
-bool get_chord_name(Chord *dest, int *intervals, size_t len, Language lang) {
+bool get_chord_name(Chord *dest, int *intervals, int len, Language lang, NoteRepresentation r) {
   if (len <= 1) return false;
 
   char chord_signature[CHORD_SIGNATURE_LENGTH] = {0};
@@ -181,7 +184,8 @@ bool get_chord_name(Chord *dest, int *intervals, size_t len, Language lang) {
     if (strncmp(chord_signature, chords[lang][i].signature,
                 CHORD_SIGNATURE_LENGTH - 1) == 0) {
       chord_found = true;
-      snprintf(dest->name, CHORD_NAME_LENGTH, "%s %s", notes[lang][intervals[chords[lang][i].root] % 12],
+      snprintf(dest->name, CHORD_NAME_LENGTH, "%s %s",
+               notes[lang][r][intervals[chords[lang][i].root] % 12],
                chords[lang][i].name);
       strncat(dest->parenthesis, chords[lang][i].parenthesis,
               CHORD_PARENTHESIS_LENGTH - 1);

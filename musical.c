@@ -38,6 +38,7 @@ void clear_marked_notes(Arg *arg);
 void down_note(Arg *arg);
 void mark_note(Arg *arg);
 void play_note(Arg *arg);
+void toggle_accidental(Arg *arg);
 void transpose_notes(Arg *arg);
 void cycle_language(Arg *arg);
 void draw_help_pt(void);
@@ -100,16 +101,22 @@ void play_note(Arg *arg) {
   start_timer(&pressed_notes[arg->i], pressed_note_duration);
 }
 
+void toggle_accidental(Arg *arg) {
+  if (accidental == SHARP)
+    accidental = FLAT;
+  else
+    accidental = SHARP;
+}
+
 void transpose_notes(Arg *arg) {
   int i = abs(arg->i);
-  size_t len = (last_note - first_note + 1);
-  size_t n = (len - i) * sizeof(bool);
+  size_t n = (last_note - first_note - i + 1) * sizeof(bool);
   if (arg->i >= 0) {
     memmove(&marked_notes[first_note + i], &marked_notes[first_note], n);
     memset(&marked_notes[first_note], false, i * sizeof(bool));
   } else {
     memmove(&marked_notes[first_note], &marked_notes[first_note + i], n);
-    memset(&marked_notes[len - i], false, i * sizeof(bool));
+    memset(&marked_notes[last_note - i + 1], false, i * sizeof(bool));
   }
 }
 
@@ -196,8 +203,8 @@ void draw_chord_name(void) {
     return;
   else if (len == 1)
     snprintf(chord.name, CHORD_NAME_LENGTH, "%s",
-             notes[language][intervals[0] % 12]);
-  else if (!get_chord_name(&chord, intervals, len, language))
+             notes[language][accidental][intervals[0] % 12]);
+  else if (!get_chord_name(&chord, intervals, len, language, accidental))
     return;
   DrawText(chord.name, piano.x, (screen.height / 2 - piano.height / 2) - 48, 20,
            COLOR_FOREGROUND);
@@ -285,8 +292,6 @@ int main(void) {
     buttons[i].right_click_func = mark_note;
     buttons[i].arg.i = i;
   }
-  snprintf(program_title, LENGTH(program_title),
-           "%s - Press F1 to change language", program_name);
   SetTraceLogLevel(LOG_WARNING);
   InitWindow(screen.width, screen.height, program_title);
   SetTargetFPS(target_fps);
