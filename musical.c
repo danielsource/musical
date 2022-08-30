@@ -13,11 +13,11 @@
 #include "timer.h"
 #include "util.h"
 
-#define BLACK_KEYS 5
 #define NOTE_NULL INT_MAX
 
 typedef union {
   int i;
+  const void *v;
 } Arg;
 
 typedef struct {
@@ -40,6 +40,7 @@ void mark_note(Arg *arg);
 void play_note(Arg *arg);
 void toggle_accidental(Arg *arg);
 void transpose_notes(Arg *arg);
+void show_help(Arg *arg);
 void cycle_language(Arg *arg);
 void draw_help_pt(void);
 void draw_help_en(void);
@@ -63,10 +64,10 @@ Button buttons[last_note + 1];
 Color key_colors[last_note + 1];
 Rectangle keyboard;
 Timer pressed_notes[last_note + 1];
-int marked_notes_count;
+Timer show_help_notice;
 bool down_notes[last_note + 1], marked_notes[last_note + 1];
-bool help_pressed_notes = true, help_clear_marked_notes = true,
-     help_mark_marked_notes = false;
+bool help_pressed_notes, help_clear_marked_notes, help_mark_marked_notes;
+int marked_notes_count;
 
 void clear_marked_notes(Arg *arg) {
   for (int i = first_note; i <= last_note; i++) marked_notes[i] = false;
@@ -88,11 +89,8 @@ void mark_note(Arg *arg) {
 }
 
 void play_note(Arg *arg) {
-  static int count = 0;
-  if (++count == 3) {
-    help_pressed_notes = false;
-    help_mark_marked_notes = true;
-  }
+  help_pressed_notes = false;
+  help_mark_marked_notes = true;
   if (IsKeyDown(KEY_LEFT_CONTROL)) {
     help_mark_marked_notes = false;
     mark_note(arg);
@@ -120,9 +118,18 @@ void transpose_notes(Arg *arg) {
   }
 }
 
+void show_help(Arg *arg) {
+  show_help_notice.lifetime = 0;
+  help_pressed_notes = true;
+  help_clear_marked_notes = true;
+  help_mark_marked_notes = false;
+}
+
 void cycle_language(Arg *arg) {
-  strcpy(program_title, program_name);
-  SetWindowTitle(program_title);
+  help_pressed_notes = false;
+  help_clear_marked_notes = false;
+  help_mark_marked_notes = false;
+  start_timer(&show_help_notice, show_help_notice_duration);
   language = MOD(language + arg->i, LANGUAGE_LAST);
 }
 
@@ -138,7 +145,7 @@ void update_piano(void) {
   int note_total = last_note - first_note + 1;
   int carry = MOD(note_total, 12);
   int octaves = (note_total - carry) / 12;
-  int black_keys = BLACK_KEYS * octaves;
+  int black_keys = 5 * octaves;
   if (carry)
     for (int i = last_note - carry + 1; i <= last_note; i++)
       if (is_black_key[i % 12]) black_keys++;
@@ -244,28 +251,64 @@ void draw_piano(void) {
 void draw_help_pt(void) {
   char *text;
   int text_size = 10;
-  if (help_pressed_notes) {
+  if (!is_timer_done(&show_help_notice)) {
+    text = "Pressione F1 para mostrar ajuda.";
+    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+    text = "Press F2 to change the language to English";
+    DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+  } else if (help_pressed_notes) {
     text = "Use o teclado do computador ou o mouse para tocar o";
     DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
              Fade(COLOR_FOREGROUND, 0.35f));
-    text = "teclado musical";
+    text = "teclado musical.";
     DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
              Fade(COLOR_FOREGROUND, 0.35f));
   } else if (marked_notes_count && help_clear_marked_notes) {
-    text = "Aperte barra de espaço para limpar as notas marcadas";
+    text = "Pressione barra de espaço para limpar as notas marcadas.";
     DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
              Fade(COLOR_FOREGROUND, 0.35f));
   } else if (!marked_notes_count && help_mark_marked_notes) {
     text = "Segure a tecla Ctrl enquanto toca as teclas ou clique com o";
     DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
              Fade(COLOR_FOREGROUND, 0.35f));
-    text = "botão direito para marcar notas";
+    text = "botão direito para marcar notas.";
     DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
              Fade(COLOR_FOREGROUND, 0.35f));
   }
 }
 
-void draw_help_en(void) {}
+void draw_help_en(void) {
+  char *text;
+  int text_size = 10;
+  if (!is_timer_done(&show_help_notice)) {
+    text = "Press F1 to show help.";
+    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+    text = "Pressione F2 para mudar o idioma para português.";
+    DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+  } else if (help_pressed_notes) {
+    text = "Use your computer keyboard or mouse to play the piano";
+    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+    text = "keyboard.";
+    DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+  } else if (marked_notes_count && help_clear_marked_notes) {
+    text = "Press spacebar to clear marked notes.";
+    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+  } else if (!marked_notes_count && help_mark_marked_notes) {
+    text = "Hold down the Ctrl key while playing keys or right-click";
+    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+    text = "to mark notes.";
+    DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
+             Fade(COLOR_FOREGROUND, 0.35f));
+  }
+}
 
 void run(void) {
   screen.x = GetWindowPosition().x;
@@ -295,6 +338,7 @@ int main(void) {
   SetTraceLogLevel(LOG_WARNING);
   InitWindow(screen.width, screen.height, program_title);
   SetTargetFPS(target_fps);
+  start_timer(&show_help_notice, show_help_notice_duration);
   while (!WindowShouldClose()) run();
   CloseWindow();
   return EXIT_SUCCESS;

@@ -12,8 +12,8 @@ const Chord chords[LANGUAGE_LAST][74] =
          {{"0", "Primeira Justa", {0}, 0},
           {"1", "Segunda Menor", "(Semitom)", 0},
           {"2", "Segunda Maior", "(Tom)", 0},
-          {"3", "Terceira Menor", {0}, 0},
-          {"4", "Terceira Maior", {0}, 0},
+          {"3", "Terça Menor", {0}, 0},
+          {"4", "Terça Maior", {0}, 0},
           {"5", "Quarta Justa", {0}, 0},
           {"6", "Quinta Diminuta", "(Trítono)", 0},
           {"7", "Quinta Justa", {0}, 0},
@@ -167,7 +167,8 @@ const char *const notes[LANGUAGE_LAST][NOTE_REPRESENTATION_LAST][12] = {
         {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"},
         {"C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"}}};
 
-bool get_chord_name(Chord *dest, int *intervals, int len, Language lang, NoteRepresentation r) {
+bool get_chord_name(Chord *dest, int *intervals, int len, Language lang,
+                    NoteRepresentation r) {
   if (len <= 1) return false;
 
   char chord_signature[CHORD_SIGNATURE_LENGTH] = {0};
@@ -184,9 +185,12 @@ bool get_chord_name(Chord *dest, int *intervals, int len, Language lang, NoteRep
     if (strncmp(chord_signature, chords[lang][i].signature,
                 CHORD_SIGNATURE_LENGTH - 1) == 0) {
       chord_found = true;
-      snprintf(dest->name, CHORD_NAME_LENGTH, "%s %s",
-               notes[lang][r][intervals[chords[lang][i].root] % 12],
-               chords[lang][i].name);
+      if (len == 2)
+        snprintf(dest->name, CHORD_NAME_LENGTH, "%s", chords[lang][i].name);
+      else
+        snprintf(dest->name, CHORD_NAME_LENGTH, "%s %s",
+                 notes[lang][r][intervals[chords[lang][i].root] % 12],
+                 chords[lang][i].name);
       strncat(dest->parenthesis, chords[lang][i].parenthesis,
               CHORD_PARENTHESIS_LENGTH - 1);
       strncat(dest->signature, chords[lang][i].signature,

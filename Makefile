@@ -1,4 +1,4 @@
-CC      = clang
+CC      = cc
 CFLAGS  = -std=c99 -ggdb -O0 -Wall -Wextra -Wpedantic
 LDFLAGS = -L. -lraylib -lm
 
