@@ -1,4 +1,4 @@
-<img align="left" src="musical.png">
+![musical.png](musical.png)
 
 about
 -----
