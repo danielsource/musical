@@ -173,11 +173,11 @@ bool get_chord_name(Chord *dest, int *intervals, int len, Language lang,
 
   char chord_signature[CHORD_SIGNATURE_LENGTH] = {0};
   for (int i = 1; i < len; i++) {
-    int note = abs(intervals[i] - intervals[i - 1]);
-    char s[3];
-    snprintf(s, 3, "%d", note);
-    if (i != 1) strncat(chord_signature, "-", CHORD_SIGNATURE_LENGTH - 1);
-    strncat(chord_signature, s, CHORD_SIGNATURE_LENGTH - 1);
+    unsigned char note = abs(intervals[i] - intervals[i - 1]);
+    char s[4];
+    snprintf(s, 4, "%d", note);
+    if (i != 1) strncat(chord_signature, "-", CHORD_SIGNATURE_LENGTH - strlen(chord_signature) - 1);
+    strncat(chord_signature, s, CHORD_SIGNATURE_LENGTH - strlen(chord_signature) - 1);
   }
 
   bool chord_found = false;
@@ -186,15 +186,15 @@ bool get_chord_name(Chord *dest, int *intervals, int len, Language lang,
                 CHORD_SIGNATURE_LENGTH - 1) == 0) {
       chord_found = true;
       if (len == 2)
-        snprintf(dest->name, CHORD_NAME_LENGTH, "%s", chords[lang][i].name);
+        strncpy(dest->name, chords[lang][i].name, CHORD_NAME_LENGTH);
       else
         snprintf(dest->name, CHORD_NAME_LENGTH, "%s %s",
                  notes[lang][r][intervals[chords[lang][i].root] % 12],
                  chords[lang][i].name);
-      strncat(dest->parenthesis, chords[lang][i].parenthesis,
-              CHORD_PARENTHESIS_LENGTH - 1);
-      strncat(dest->signature, chords[lang][i].signature,
-              CHORD_SIGNATURE_LENGTH - 1);
+      strncpy(dest->parenthesis, chords[lang][i].parenthesis,
+              CHORD_PARENTHESIS_LENGTH);
+      strncpy(dest->signature, chords[lang][i].signature,
+              CHORD_SIGNATURE_LENGTH);
       dest->root = chords[lang][i].root;
       break;
     }
