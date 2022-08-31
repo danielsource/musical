@@ -1,4 +1,4 @@
-![musical.png](musical.png)
+![musical.png](doc/images/musical.png)
 
 [1]: https://www.raylib.com
 [2]: https://github.com/raysan5/raylib/blob/master/README.md#build-and-installation
