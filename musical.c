@@ -341,7 +341,7 @@ void draw_help_en(void) {
       break;
     case HELP_CLEAR_MARKED_NOTES:
       if (marked_notes_count) {
-        text = "Press spacebar to clear marked notes.";
+        text = "Press space bar to clear marked notes.";
         DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
                  Fade(COLOR_FOREGROUND, 0.35f));
       }
