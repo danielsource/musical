@@ -14,6 +14,8 @@
 #include "timer.h"
 #include "util.h"
 
+#define IS_CTRL_DOWN() \
+  (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))
 #define NOTE_NULL INT_MAX
 
 typedef enum HelpMessage {
@@ -85,7 +87,7 @@ void clear_marked_notes(Arg *arg) {
 }
 
 void down_note(Arg *arg) {
-  if (!IsKeyDown(KEY_LEFT_CONTROL)) down_notes[arg->i] = true;
+  if (!IS_CTRL_DOWN()) down_notes[arg->i] = true;
 }
 
 void mark_note(Arg *arg) {
@@ -99,7 +101,7 @@ void mark_note(Arg *arg) {
 }
 
 void play_note(Arg *arg) {
-  if (IsKeyDown(KEY_LEFT_CONTROL)) {
+  if (IS_CTRL_DOWN()) {
     mark_note(arg);
     return;
   }
