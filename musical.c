@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "raylib.h"
 
@@ -45,6 +46,7 @@ void clear_marked_notes(Arg *arg);
 void down_note(Arg *arg);
 void mark_note(Arg *arg);
 void play_note(Arg *arg);
+void print_screen(Arg *arg);
 void toggle_accidental(Arg *arg);
 void transpose_notes(Arg *arg);
 void show_help(Arg *arg);
@@ -92,17 +94,28 @@ void mark_note(Arg *arg) {
     marked_notes_count++;
   else
     marked_notes_count--;
+  if (help == HELP_PRESSED_NOTES) help = HELP_MARK_MARKED_NOTES;
   if (help == HELP_MARK_MARKED_NOTES) help = HELP_CLEAR_MARKED_NOTES;
 }
 
 void play_note(Arg *arg) {
-  if (help == HELP_PRESSED_NOTES) help = HELP_MARK_MARKED_NOTES;
   if (IsKeyDown(KEY_LEFT_CONTROL)) {
-    if (help == HELP_MARK_MARKED_NOTES) help = HELP_CLEAR_MARKED_NOTES;
     mark_note(arg);
     return;
   }
+  if (help == HELP_PRESSED_NOTES) help = HELP_MARK_MARKED_NOTES;
   start_timer(&pressed_notes[arg->i], pressed_note_duration);
+}
+
+void print_screen(Arg *arg) {
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  char s[64];
+  char datetime[32];
+  strftime(datetime, sizeof(datetime), "%Y-%m-%d_%H-%M-%S", tm);
+  snprintf(s, LENGTH(s), "%s_%s.%s", program_name, datetime,
+           print_screen_file_extension);
+  TakeScreenshot(s);
 }
 
 void toggle_accidental(Arg *arg) {
@@ -280,7 +293,8 @@ void draw_help_pt(void) {
         text = "botão direito para marcar notas.";
         DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
                  Fade(COLOR_FOREGROUND, 0.35f));
-      }
+      } else
+        help = HELP_CLEAR_MARKED_NOTES;
       break;
     case HELP_CLEAR_MARKED_NOTES:
       if (marked_notes_count) {
@@ -322,7 +336,8 @@ void draw_help_en(void) {
         text = "to mark notes.";
         DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
                  Fade(COLOR_FOREGROUND, 0.35f));
-      }
+      } else
+        help = HELP_CLEAR_MARKED_NOTES;
       break;
     case HELP_CLEAR_MARKED_NOTES:
       if (marked_notes_count) {
