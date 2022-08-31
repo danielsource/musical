@@ -2,13 +2,13 @@
 #define CHORD_PARENTHESIS_LENGTH 64
 #define CHORD_SIGNATURE_LENGTH 32
 
-typedef enum {
+typedef enum NoteRepresentation {
   SHARP,
   FLAT,
   NOTE_REPRESENTATION_LAST
 } NoteRepresentation;
 
-typedef struct {
+typedef struct Chord {
   char signature[CHORD_SIGNATURE_LENGTH];
   char name[CHORD_NAME_LENGTH];
   char parenthesis[CHORD_PARENTHESIS_LENGTH];
