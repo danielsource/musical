@@ -1,1 +1,6 @@
-typedef enum { PORTUGUESE, ENGLISH, LANGUAGE_LAST } Language;
+typedef enum {
+  PORTUGUESE,
+  ENGLISH,
+  ABBREVIATED_CHORDS,
+  LANGUAGE_LAST
+} Language;

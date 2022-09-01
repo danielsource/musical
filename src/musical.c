@@ -16,6 +16,8 @@
 
 #define IS_CTRL_DOWN() \
   (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))
+#define IS_SHIFT_DOWN() \
+  (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT))
 #define NOTE_NULL INT_MAX
 
 typedef enum HelpMessage {
@@ -49,7 +51,7 @@ void down_note(Arg *arg);
 void mark_note(Arg *arg);
 void play_note(Arg *arg);
 void print_screen(Arg *arg);
-void toggle_accidental(Arg *arg);
+void toggle_chord_visualization(Arg *arg);
 void transpose_notes(Arg *arg);
 void show_help(Arg *arg);
 void cycle_language(Arg *arg);
@@ -120,11 +122,14 @@ void print_screen(Arg *arg) {
   TakeScreenshot(s);
 }
 
-void toggle_accidental(Arg *arg) {
-  if (accidental == SHARP)
-    accidental = FLAT;
+void toggle_chord_visualization(Arg *arg) {
+  if (IS_SHIFT_DOWN())
+    if (accidental == SHARP)
+      accidental = FLAT;
+    else
+      accidental = SHARP;
   else
-    accidental = SHARP;
+    abbreviate_chords = !abbreviate_chords;
 }
 
 void transpose_notes(Arg *arg) {
@@ -145,8 +150,9 @@ void show_help(Arg *arg) {
 }
 
 void cycle_language(Arg *arg) {
+  abbreviate_chords = false;
   help = HELP_NULL;
-  language = MOD(language + arg->i, LANGUAGE_LAST);
+  language = MOD(language + arg->i, ABBREVIATED_CHORDS);
   start_timer(&show_help_notice, show_help_notice_duration);
 }
 
@@ -228,7 +234,9 @@ void draw_chord_name(void) {
   else if (len == 1)
     snprintf(chord.name, CHORD_NAME_LENGTH, "%s",
              notes[language][accidental][intervals[0] % 12]);
-  else if (!get_chord_name(&chord, intervals, len, language, accidental))
+  else if (!get_chord_name(&chord, intervals, len,
+                           (abbreviate_chords ? ABBREVIATED_CHORDS : language),
+                           accidental))
     return;
   DrawText(chord.name, piano.x, (screen.height / 2 - piano.height / 2) - 48, 20,
            COLOR_FOREGROUND);

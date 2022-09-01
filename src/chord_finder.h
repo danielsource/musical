@@ -15,7 +15,7 @@ typedef struct Chord {
   int root;
 } Chord;
 
-extern const Chord chords[LANGUAGE_LAST][73];
+extern const Chord chords[LANGUAGE_LAST][72];
 extern const char *const notes[LANGUAGE_LAST][NOTE_REPRESENTATION_LAST][12];
 
 bool get_chord_name(Chord *dest, int *intervals, int len, Language lang, NoteRepresentation r);

@@ -13,7 +13,7 @@
 Keybinding keybindings[] = {
   {.key = KEY_F1,    .pressed_func = show_help, .arg = {.v=NULL}},
   {.key = KEY_F2,    .pressed_func = cycle_language, .arg = {+1}},
-  {.key = KEY_TAB,   .pressed_func = toggle_accidental, .arg = {.v=NULL}},
+  {.key = KEY_TAB,   .pressed_func = toggle_chord_visualization, .arg = {.v=NULL}},
   {.key = KEY_INSERT,.pressed_func = print_screen, .arg = {.v=NULL}},
   {.key = KEY_LEFT,  .pressed_func = transpose_notes, .arg = {-1}},
   {.key = KEY_RIGHT, .pressed_func = transpose_notes, .arg = {+1}},
@@ -54,6 +54,7 @@ Language language = PORTUGUESE;
 NoteRepresentation accidental = SHARP;
 Rectangle piano = {-1, -1, 315, 80};
 Rectangle screen = {-1, -1, 370, 210};
+bool abbreviate_chords = false;
 char *print_screen_file_extension = "png";
 char *program_name = "musical";
 char program_title[64] = "musical";
