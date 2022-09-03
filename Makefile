@@ -1,6 +1,6 @@
-CC      = cc
-CFLAGS  = -std=c99 -g
-LDFLAGS = -lraylib -lm
+CC      ?= cc
+CFLAGS  ?= -std=c99 -g
+LDFLAGS ?= -lraylib -lm
 
 sources = $(wildcard src/*.c)
 headers = $(wildcard src/*.h)
