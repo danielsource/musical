@@ -1,4 +1,4 @@
-typedef enum {
+typedef enum Language {
   PORTUGUESE,
   ENGLISH,
   ABBREVIATED_CHORDS,

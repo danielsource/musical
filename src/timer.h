@@ -1,4 +1,4 @@
-typedef struct {
+typedef struct Timer {
   double start;
   double lifetime;
 } Timer;
