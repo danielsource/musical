@@ -37,13 +37,29 @@ static char *test_signatures_and_roots() {
       if (strcmp(prev_chord->signature, chord->signature) != 0 ||
           prev_chord->root != chord->root) {
         same = false;
-        printf("%s|%s|%d != %s|%s|%d\n", chord->name, chord->signature,
-               chord->root, prev_chord->name, prev_chord->signature,
-               prev_chord->root);
+        printf("%s != %s\n", chord->name, prev_chord->name);
       }
     }
   }
-  ASSERT("These chords don't have the same signatures", same);
+  ASSERT("These chords don't have the same signatures or roots.", same);
+  return 0;
+}
+
+static char *test_duplicate_signatures() {
+  Chord chords_tmp[LANGUAGE_LAST][LENGTH(*chords)];
+  bool duplicate = false;
+  memcpy(chords_tmp, chords, sizeof(chords));
+  for (int i = 0; i < LENGTH(*chords); i++)
+    for (int j = 0; j < LANGUAGE_LAST; j++)
+      for (int k = 0; k < LENGTH(*chords); k++)
+        for (int l = 0; l < LANGUAGE_LAST; l++)
+          if (i != k && j != l && *chords_tmp[l][k].signature != '\0' &&
+              strcmp(chords[j][i].signature, chords_tmp[l][k].signature) == 0) {
+            duplicate = true;
+            printf("%s == %s\n", chords[j][i].name, chords_tmp[l][k].name);
+            *chords_tmp[l][k].signature = '\0';
+          }
+  ASSERT("These chords have duplicate signatures.", !duplicate);
   return 0;
 }
 
@@ -52,8 +68,7 @@ static char *test_chord_names() {
     for (int j = 0; j < LANGUAGE_LAST; j++) {
       const Chord *chord = &chords[j][i];
       const char *name = chord->name;
-      if (!*name)
-        name = "EMPTY";
+      if (!*name) name = "EMPTY";
       if (j != LANGUAGE_LAST - 1)
         printf("%s, ", name);
       else
@@ -68,6 +83,7 @@ static char *test_chord_names() {
 
 static char *all_tests() {
   RUN_TEST(test_signatures_and_roots);
+  RUN_TEST(test_duplicate_signatures);
   RUN_TEST(test_chord_names);
   return 0;
 }

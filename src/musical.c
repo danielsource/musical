@@ -241,7 +241,7 @@ void draw_chord_name(void) {
   char *parenthesis = NULL;
   len = strlen(chord.name);
   for (size_t i = 1; i < len; i++) {
-    if (chord.name[i] == '(') {
+    if (chord.name[i] == '(' && chord.name[i - 1] == ' ') {
       chord.name[i - 1] = '\0';
       parenthesis = &chord.name[i];
       break;
@@ -385,6 +385,9 @@ void run(void) {
 }
 
 int main(void) {
+  puts(
+      "This was made with raylib. "
+      "See more about here: https://www.raylib.com");
   for (int i = 0; i < LENGTH(keybindings); i++)
     if (keybindings[i].pressed_func == play_note)
       keybindings[i].down_func = down_note;
