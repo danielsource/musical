@@ -238,12 +238,20 @@ void draw_chord_name(void) {
                            (abbreviate_chords ? ABBREVIATED_CHORDS : language),
                            accidental))
     return;
+  char *parenthesis = NULL;
+  len = strlen(chord.name);
+  for (size_t i = 1; i < len; i++) {
+    if (chord.name[i] == '(') {
+      chord.name[i - 1] = '\0';
+      parenthesis = &chord.name[i];
+      break;
+    }
+  }
   DrawText(chord.name, piano.x, (screen.height / 2 - piano.height / 2) - 48, 20,
            COLOR_FOREGROUND);
-  // if (chord.parenthesis[0])
-  //   DrawText(chord.parenthesis, piano.x,
-  //            (screen.height / 2 - piano.height / 2) - 26, 20,
-  //            COLOR_FOREGROUND);
+  if (parenthesis)
+    DrawText(parenthesis, piano.x, (screen.height / 2 - piano.height / 2) - 26,
+             20, COLOR_FOREGROUND);
 }
 
 void draw_piano(void) {
