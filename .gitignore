@@ -1,3 +1,4 @@
 *.o
-musical
-test/*[!.]*
+/musical
+/test/*
+!/test/*.[ch]

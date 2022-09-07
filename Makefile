@@ -2,6 +2,7 @@ CC      ?= cc
 CFLAGS  ?= -std=c99 -g
 LDFLAGS ?= -lraylib -lm
 
+entry_point = src/musical.o
 sources = $(wildcard src/*.c)
 headers = $(wildcard src/*.h)
 test_sources = $(wildcard test/*.c)
@@ -14,11 +15,12 @@ all: musical
 debug: CFLAGS += -O0 -Wall -Wextra -Wpedantic
 debug: musical
 
+test: CFLAGS += -O0 -Wall -Wextra -Wpedantic
 test: $(tests)
 	@$(foreach t,$(tests),./$(t))
 
 clean:
-	rm -f musical $(objects)
+	rm -f musical $(objects) $(tests)
 
 musical: $(objects)
 	$(CC) -o $@ $(objects) $(LDFLAGS)
@@ -26,7 +28,8 @@ musical: $(objects)
 src/%.o: src/%.c $(headers)
 	$(CC) -o $@ -c $(CFLAGS) $<
 
-test/%: test/%.c $(test_headers)
-	$(CC) -o $@ $(CFLAGS) $<
+test/%: test/%.c $(test_headers) musical
+	$(CC) -Isrc -o $@.o -c $(CFLAGS) $<
+	$(CC) -o $@ $@.o $(filter-out $(entry_point),$(objects)) $(LDFLAGS)
 
 .PHONY: all debug test clean

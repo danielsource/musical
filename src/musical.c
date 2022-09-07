@@ -240,9 +240,10 @@ void draw_chord_name(void) {
     return;
   DrawText(chord.name, piano.x, (screen.height / 2 - piano.height / 2) - 48, 20,
            COLOR_FOREGROUND);
-  if (chord.parenthesis[0])
-    DrawText(chord.parenthesis, piano.x,
-             (screen.height / 2 - piano.height / 2) - 26, 20, COLOR_FOREGROUND);
+  // if (chord.parenthesis[0])
+  //   DrawText(chord.parenthesis, piano.x,
+  //            (screen.height / 2 - piano.height / 2) - 26, 20,
+  //            COLOR_FOREGROUND);
 }
 
 void draw_piano(void) {

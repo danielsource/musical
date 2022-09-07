@@ -1,5 +1,4 @@
-#define CHORD_NAME_LENGTH 64
-#define CHORD_PARENTHESIS_LENGTH 64
+#define CHORD_NAME_LENGTH 128
 #define CHORD_SIGNATURE_LENGTH 32
 
 typedef enum NoteRepresentation {
@@ -11,7 +10,6 @@ typedef enum NoteRepresentation {
 typedef struct Chord {
   char signature[CHORD_SIGNATURE_LENGTH];
   char name[CHORD_NAME_LENGTH];
-  char parenthesis[CHORD_PARENTHESIS_LENGTH];
   int root;
 } Chord;
 
