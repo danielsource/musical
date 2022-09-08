@@ -20,7 +20,7 @@ test: $(tests)
 	@$(foreach t,$(tests),./$(t))
 
 clean:
-	rm -f musical $(objects) $(tests)
+	rm -f musical $(objects) $(tests) $(test_sources:.c=.o)
 
 musical: $(objects)
 	$(CC) -o $@ $(objects) $(LDFLAGS)
