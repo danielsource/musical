@@ -45,7 +45,7 @@ const Chord chords[LANGUAGE_LAST][LENGTH(*chords)] = {
         {"3-5",     "maior (primeira inversão)", 2},
         {"5-4",     "maior (segunda inversão)", 1},
         {"2-5",     "segunda suspensa", 0},
-        {"5-5",     "segunda suspensa (primeira inversão)", 2},
+        {"5-5",     "segunda suspensa (segunda como tônica)", 2},
         {"5-2",     "quarta suspensa", 0},
         {"2-2-3",   "com segunda adicionada", 0},
         {"2-3-5",   "com segunda adicionada (segunda como tônica)", 3},
@@ -62,6 +62,8 @@ const Chord chords[LANGUAGE_LAST][LENGTH(*chords)] = {
         {"4-3-2",   "menor com sétima (primeira inversão)", 3},
         {"3-2-3",   "menor com sétima (segunda inversão)", 2},
         {"2-3-4",   "menor com sétima (terceira inversão)", 1},
+        {"4-2-4",   "dominante com quinta bemol", 0},
+        {"2-4-2",   "dominante com quinta bemol (terceira como tônica)", 3},
         {"4-3-3",   "com sétima dominante", 0},
         {"3-3-2",   "com sétima dominante (primeira inversão)", 3},
         {"3-2-4",   "com sétima dominante (segunda inversão)", 2},
@@ -82,7 +84,7 @@ const Chord chords[LANGUAGE_LAST][LENGTH(*chords)] = {
         {"4-2-2",   "aumentado com sétima menor (primeira inversão)", 3},
         {"2-2-4",   "aumentado com sétima menor (segunda inversão)", 2},
         {"2-4-4",   "aumentado com sétima menor (terceira inversão)", 1},
-        {"3-4-3-3", "menor com nona", 0},
+        {"3-4-3-4", "menor com nona", 0},
         {"3-7-3",   "menor com nona (faltando quinta)", 0},
         {"4-3-3-3", "dominante com nona menor", 0},
         {"7-3-3",   "dominante com nona menor (faltando terça)", 0},
@@ -93,7 +95,9 @@ const Chord chords[LANGUAGE_LAST][LENGTH(*chords)] = {
         {"4-3-4-3", "com nona maior", 0},
         {"7-4-3",   "com nona maior (faltando terça)", 0},
         {"4-7-3",   "com nona maior (faltando quinta)", 0},
-        {"4-3-3-5", "dominante com nona sustenido", 0}},
+        {"4-3-3-5", "dominante com nona sustenido", 0},
+        {"3-4-3-4-3", "menor com décima primeira", 0},
+        {"4-3-3-4-3", "com décima primeira dominante", 0}},
     [ENGLISH] = {
         {"0",       "Perfect unison", 0},
         {"1",       "Minor second (semitone)", 0},
@@ -148,6 +152,8 @@ const Chord chords[LANGUAGE_LAST][LENGTH(*chords)] = {
         {"4-3-2",   "minor seventh (first inversion)", 3},
         {"3-2-3",   "minor seventh (second inversion)", 2},
         {"2-3-4",   "minor seventh (third inversion)", 1},
+        {"4-2-4",   "dominant seventh flat five", 0},
+        {"2-4-2",   "dominant seventh flat five", 3},
         {"4-3-3",   "dominant seventh", 0},
         {"3-3-2",   "dominant seventh (first inversion)", 3},
         {"3-2-4",   "dominant seventh (second inversion)", 2},
@@ -168,7 +174,7 @@ const Chord chords[LANGUAGE_LAST][LENGTH(*chords)] = {
         {"4-2-2",   "augmented seventh (first inversion)", 3},
         {"2-2-4",   "augmented seventh (second inversion)", 2},
         {"2-4-4",   "augmented seventh (third inversion)", 1},
-        {"3-4-3-3", "minor ninth", 0},
+        {"3-4-3-4", "minor ninth", 0},
         {"3-7-3",   "minor ninth (missing fifth)", 0},
         {"4-3-3-3", "dominant minor ninth", 0},
         {"7-3-3",   "dominant minor ninth (missing third)", 0},
@@ -179,7 +185,9 @@ const Chord chords[LANGUAGE_LAST][LENGTH(*chords)] = {
         {"4-3-4-3", "major ninth", 0},
         {"7-4-3",   "major ninth (missing third)", 0},
         {"4-7-3",   "major ninth (missing fifth)", 0},
-        {"4-3-3-5", "dominant seventh sharp ninth", 0}},
+        {"4-3-3-5", "dominant seventh sharp ninth", 0},
+        {"3-4-3-4-3", "minor eleventh", 0},
+        {"4-3-3-4-3", "dominant eleventh", 0}},
     [ABBREVIATED_CHORDS] = {
         {"0",       "P1", 0},
         {"1",       "m2", 0},
@@ -234,6 +242,8 @@ const Chord chords[LANGUAGE_LAST][LENGTH(*chords)] = {
         {"4-3-2",   "m7", 3},
         {"3-2-3",   "m7", 2},
         {"2-3-4",   "m7", 1},
+        {"4-2-4",   "7(b5)", 0},
+        {"2-4-2",   "7(b5)", 3},
         {"4-3-3",   "7", 0},
         {"3-3-2",   "7", 3},
         {"3-2-4",   "7", 2},
@@ -254,18 +264,20 @@ const Chord chords[LANGUAGE_LAST][LENGTH(*chords)] = {
         {"4-2-2",   "aug7", 3},
         {"2-2-4",   "aug7", 2},
         {"2-4-4",   "aug7", 1},
-        {"3-4-3-3", "m9", 0},
-        {"3-7-3",   "m9", 0},
+        {"3-4-3-4", "m9", 0},
+        {"3-7-3",   "m9(no5)", 0},
         {"4-3-3-3", "7(b9)", 0},
-        {"7-3-3",   "7(b9)", 0},
-        {"4-6-3",   "7(b9)", 0},
+        {"7-3-3",   "7(b9)(no3)", 0},
+        {"4-6-3",   "7(b9)(no5)", 0},
         {"4-3-3-4", "9", 0},
-        {"7-3-4",   "9", 0},
-        {"4-6-4",   "9", 0},
+        {"7-3-4",   "9(no3)", 0},
+        {"4-6-4",   "9(no5)", 0},
         {"4-3-4-3", "maj9", 0},
-        {"7-4-3",   "maj9", 0},
-        {"4-7-3",   "maj9", 0},
-        {"4-3-3-5", "7(#9)", 0}}};
+        {"7-4-3",   "maj9(no3)", 0},
+        {"4-7-3",   "maj9(no5)", 0},
+        {"4-3-3-5", "7(#9)", 0},
+        {"3-4-3-4-3", "m11", 0},
+        {"4-3-3-4-3", "11", 0}}};
 
 const char *const notes[LANGUAGE_LAST][NOTE_REPRESENTATION_LAST][12] = {
     [PORTUGUESE] = {
@@ -297,22 +309,23 @@ bool get_chord_name(Chord *dest, int *intervals, int len, Language lang,
   bool chord_found = false;
   for (int i = 0; i < LENGTH(chords[lang]); i++) {
     const Chord *c = &chords[lang][i];
+    const char *root = notes[lang][r][intervals[c->root] % 12];
+    const char *bass = notes[lang][r][intervals[0] % 12];
+    char name[strlen(c->name) + strlen(root) + strlen(bass)];
+    strcpy(name, c->name);
     if (strncmp(chord_signature, c->signature, CHORD_SIGNATURE_LENGTH - 1) ==
         0) {
       chord_found = true;
       if (len == 2)
-        strncpy(dest->name, c->name, CHORD_NAME_LENGTH);
+        strncpy(dest->name, name, CHORD_NAME_LENGTH);
       else if (lang == ABBREVIATED_CHORDS)
         if (!c->root)
-          snprintf(dest->name, CHORD_NAME_LENGTH, "%s%s",
-                   notes[lang][r][intervals[c->root] % 12], c->name);
+          snprintf(dest->name, CHORD_NAME_LENGTH, "%s%s", root, name);
         else
-          snprintf(dest->name, CHORD_NAME_LENGTH, "%s%s/%s",
-                   notes[lang][r][intervals[c->root] % 12], c->name,
-                   notes[lang][r][intervals[0] % 12]);
+          snprintf(dest->name, CHORD_NAME_LENGTH, "%s%s/%s", root, name,
+                   bass);
       else
-        snprintf(dest->name, CHORD_NAME_LENGTH, "%s %s",
-                 notes[lang][r][intervals[c->root] % 12], c->name);
+        snprintf(dest->name, CHORD_NAME_LENGTH, "%s %s", root, name);
       strncpy(dest->signature, c->signature, CHORD_SIGNATURE_LENGTH);
       dest->root = c->root;
       break;

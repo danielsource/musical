@@ -16,7 +16,7 @@ static bool y_or_n(const char *prompt, bool y_default) {
   snprintf(s, len, "%s [%s]: ", prompt, y_default ? "Y/n" : "y/N");
   int c = 0;
   while (c != EOF) {
-    printf(s);
+    fputs(s, stdout);
     c = getchar();
     if (c == 'y' || c == 'Y' || (c == '\n' && y_default))
       return true;
@@ -72,7 +72,7 @@ static char *test_chord_names() {
       if (j != LANGUAGE_LAST - 1)
         printf("%s, ", name);
       else
-        printf("%s", name);
+        fputs(name, stdout);
     }
     putchar('\n');
   }

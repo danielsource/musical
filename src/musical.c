@@ -83,6 +83,7 @@ bool down_notes[last_note + 1], marked_notes[last_note + 1];
 int marked_notes_count;
 
 void clear_marked_notes(Arg *arg) {
+  UNUSED(arg);
   for (int i = first_note; i <= last_note; i++) marked_notes[i] = false;
   marked_notes_count = 0;
   if (help == HELP_CLEAR_MARKED_NOTES) help = HELP_NULL;
@@ -112,6 +113,7 @@ void play_note(Arg *arg) {
 }
 
 void print_screen(Arg *arg) {
+  UNUSED(arg);
   time_t t = time(NULL);
   struct tm *tm = localtime(&t);
   char s[64];
@@ -123,6 +125,7 @@ void print_screen(Arg *arg) {
 }
 
 void toggle_chord_visualization(Arg *arg) {
+  UNUSED(arg);
   if (IS_SHIFT_DOWN())
     if (accidental == SHARP)
       accidental = FLAT;
@@ -145,6 +148,7 @@ void transpose_notes(Arg *arg) {
 }
 
 void show_help(Arg *arg) {
+  UNUSED(arg);
   help = HELP_PRESSED_NOTES;
   show_help_notice.lifetime = 0;
 }

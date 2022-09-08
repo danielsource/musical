@@ -8,4 +8,5 @@
 #define ANSI_ESCAPE "\033"
 #define LENGTH(x) ((int)(sizeof(x) / sizeof(x)[0]))
 #define MOD(a, b) ((a) - ((b)*floor((a) / (b))))
+#define UNUSED(x) ((void)(x))
 #endif

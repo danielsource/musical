@@ -5,18 +5,18 @@
     if (!(test)) return message; \
   } while (0)
 
-#define RUN_TEST(test)                                                         \
-  do {                                                                         \
-    puts(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "RUNNING" ANSI_COLOR_RESET           \
-                                          ": " #test);                         \
-    char *message = test();                                                    \
-    tests_run++;                                                               \
-    if (message) {                                                             \
-      printf(ANSI_COLOR_RED ANSI_COLOR_BOLD "FAIL" ANSI_COLOR_RESET ": " #test \
-                                            ": ");                             \
-      return message;                                                          \
-    } else                                                                     \
-      puts(ANSI_COLOR_GREEN ANSI_COLOR_BOLD "OK: " ANSI_COLOR_RESET #test);    \
+#define RUN_TEST(test)                                                       \
+  do {                                                                       \
+    puts(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "RUNNING" ANSI_COLOR_RESET         \
+                                          ": " #test);                       \
+    char *message = test();                                                  \
+    tests_run++;                                                             \
+    if (message) {                                                           \
+      puts(ANSI_COLOR_RED ANSI_COLOR_BOLD "FAIL" ANSI_COLOR_RESET ": " #test \
+                                          ": ");                             \
+      return message;                                                        \
+    } else                                                                   \
+      puts(ANSI_COLOR_GREEN ANSI_COLOR_BOLD "OK: " ANSI_COLOR_RESET #test);  \
   } while (0)
 
 #define RUN_TEST_SUITE(run_all_tests_func)                               \
