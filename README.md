@@ -12,7 +12,7 @@ about
 A graphical program made with [raylib][1] to see the chords, intervals
 and their names being played on the piano keyboard. It is possible to
 use the keyboard or the mouse as input. The config.h file has all the
-[keybindings](config.h#L13-L50) in an array.
+[keybindings](src/config.h#L13-L50) in an array.
 
 how to run this program?
 ------------------------
