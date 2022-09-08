@@ -1,5 +1,5 @@
 CC      ?= cc
-CFLAGS  ?= -std=c99 -g
+CFLAGS  ?= -std=c99 -g -Wall -Wextra -Wpedantic
 LDFLAGS ?= -lraylib -lm
 
 entry_point = src/musical.o
@@ -12,10 +12,6 @@ objects = $(sources:.c=.o)
 
 all: musical
 
-debug: CFLAGS += -O0 -Wall -Wextra -Wpedantic
-debug: musical
-
-test: CFLAGS += -O0 -Wall -Wextra -Wpedantic
 test: $(tests)
 	@$(foreach t,$(tests),./$(t))
 
