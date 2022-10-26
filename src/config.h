@@ -52,7 +52,7 @@ Keybinding keybindings[] = {
 
 Language language = PORTUGUESE;
 NoteRepresentation accidental = SHARP;
-Rectangle piano = {-1, -1, 315, 80};
+Rectangle piano = {-1, -1, 330, 80};
 Rectangle screen = {-1, -1, 370, 210};
 bool abbreviate_chords = false;
 char *print_screen_file_extension = "png";
