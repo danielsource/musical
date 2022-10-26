@@ -118,8 +118,8 @@ void print_screen(Arg *arg) {
   struct tm *tm = localtime(&t);
   char s[64];
   char datetime[32];
-  strftime(datetime, sizeof(datetime), "%Y-%m-%d_%H-%M-%S", tm);
-  snprintf(s, LENGTH(s), "%s_%s.%s", program_name, datetime,
+  strftime(datetime, sizeof(datetime), "%Y-%m-%d-%H-%M-%S", tm);
+  snprintf(s, LENGTH(s), "%s-%s.%s", program_name, datetime,
            print_screen_file_extension);
   TakeScreenshot(s);
 }
