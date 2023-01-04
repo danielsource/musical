@@ -10,10 +10,14 @@
 #define COLOR_PIANO_BLACK_KEY_PRESSED (Color) {0x37, 0x7d, 0x92, 0xff}
 #define COLOR_PIANO_BLACK_KEY_MARKED  (Color) {0x37, 0x92, 0x7a, 0xff}
 
+#define CONFIG_PROPERTY(type, indentifier, value)                             \
+  type indentifier = value;                                                   \
+  type default_##indentifier = value
+
 Keybinding keybindings[] = {
-  {.key = KEY_F1,    .pressed_func = show_help, .arg = {.v=NULL}},
+  {.key = KEY_F1,    .pressed_func = show_tutorial, .arg = {.v=NULL}},
   {.key = KEY_F2,    .pressed_func = cycle_language, .arg = {+1}},
-  {.key = KEY_TAB,   .pressed_func = toggle_chord_visualization, .arg = {.v=NULL}},
+  {.key = KEY_TAB,   .pressed_func = toggle_chord_notation, .arg = {.v=NULL}},
   {.key = KEY_INSERT,.pressed_func = print_screen, .arg = {.v=NULL}},
   {.key = KEY_LEFT,  .pressed_func = transpose_notes, .arg = {-1}},
   {.key = KEY_RIGHT, .pressed_func = transpose_notes, .arg = {+1}},
@@ -51,14 +55,19 @@ Keybinding keybindings[] = {
 };
 
 Language language = PORTUGUESE;
-NoteRepresentation accidental = SHARP;
 Rectangle piano = {-1, -1, 330, 80};
 Rectangle screen = {-1, -1, 370, 210};
-bool abbreviate_chords = false;
 char *print_screen_file_extension = "png";
 char *program_name = "musical";
 char program_title[64] = "musical";
 double pressed_note_duration = 0.3f;
-double show_help_notice_duration = 5;
+double show_tutorial_notice_duration = 5;
 enum { first_note = 24, last_note = 60 };
 short target_fps = 60;
+CONFIG_PROPERTY(NoteRepresentation, accidental, SHARP);
+CONFIG_PROPERTY(bool, abbreviate_chords, false);
+
+static void reset_config() {
+  accidental = default_accidental;
+  abbreviate_chords = default_abbreviate_chords;
+}

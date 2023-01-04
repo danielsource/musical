@@ -2,6 +2,7 @@
 
 #include <limits.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,18 +15,22 @@
 #include "timer.h"
 #include "util.h"
 
-#define IS_CTRL_DOWN() \
+#define IS_CTRL_DOWN()                                                        \
   (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))
-#define IS_SHIFT_DOWN() \
+#define IS_SHIFT_DOWN()                                                       \
   (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT))
 #define NOTE_NULL INT_MAX
 
-typedef enum HelpMessage {
-  HELP_NULL,
-  HELP_PRESSED_NOTES,
-  HELP_MARK_MARKED_NOTES,
-  HELP_CLEAR_MARKED_NOTES
-} HelpMessage;
+typedef enum TutorialSegment {
+  TUTORIAL_NULL = 0,
+  TUTORIAL_PRESSED_NOTES,
+  TUTORIAL_MARKED_NOTES,
+  TUTORIAL_TRANSPOSE_MARKED_NOTES,
+  TUTORIAL_TOGGLE_CHORD_NOTATION,
+  TUTORIAL_TOGGLE_ACCIDENTAL,
+  TUTORIAL_CLEAR_MARKED_NOTES,
+  TUTORIAL_FINISH,
+} TutorialSegment;
 
 typedef union Arg {
   int i;
@@ -46,17 +51,17 @@ typedef struct Keybinding {
   Arg arg;
 } Keybinding;
 
-void clear_marked_notes(Arg *arg);
-void down_note(Arg *arg);
-void mark_note(Arg *arg);
-void play_note(Arg *arg);
-void print_screen(Arg *arg);
-void toggle_chord_visualization(Arg *arg);
-void transpose_notes(Arg *arg);
-void show_help(Arg *arg);
-void cycle_language(Arg *arg);
-void draw_help_pt(void);
-void draw_help_en(void);
+static void clear_marked_notes(Arg *arg);
+static void down_note(Arg *arg);
+static void mark_note(Arg *arg);
+static void play_note(Arg *arg);
+static void print_screen(Arg *arg);
+static void toggle_chord_notation(Arg *arg);
+static void transpose_notes(Arg *arg);
+static void show_tutorial(Arg *arg);
+static void cycle_language(Arg *arg);
+static void draw_tutorial_pt(void);
+static void draw_tutorial_en(void);
 
 // Preprocessor macro to handle mouse input
 #include "mouse_click.h"
@@ -64,33 +69,42 @@ void draw_help_en(void);
 // Configurable global variables
 #include "config.h"
 
-void (*draw_help_funcs[LANGUAGE_LAST])(void) = {
-    [PORTUGUESE] = draw_help_pt,
-    [ENGLISH] = draw_help_en,
+void (*draw_tutorial_funcs[LANGUAGE_LAST])(void) = {
+  [PORTUGUESE] = draw_tutorial_pt,
+  [ENGLISH] = draw_tutorial_en,
 };
 
 bool is_black_key[12] = {
-    [1] = true, [3] = true, [6] = true, [8] = true, [10] = true,
+  [1] = true, [3] = true, [6] = true, [8] = true, [10] = true,
 };
 
 Button buttons[last_note + 1];
 Color key_colors[last_note + 1];
-HelpMessage help = HELP_NULL;
+TutorialSegment tutorial_segment;
 Rectangle keyboard;
 Timer pressed_notes[last_note + 1];
-Timer show_help_notice;
+Timer show_tutorial_notice;
 bool down_notes[last_note + 1], marked_notes[last_note + 1];
 int marked_notes_count;
 
+static inline void change_tutorial(TutorialSegment target) {
+  if (tutorial_segment != target)
+    return;
+  tutorial_segment++;
+  tutorial_segment %= TUTORIAL_FINISH + 1;
+}
+
 void clear_marked_notes(Arg *arg) {
   UNUSED(arg);
-  for (int i = first_note; i <= last_note; i++) marked_notes[i] = false;
+  for (int i = first_note; i <= last_note; i++)
+    marked_notes[i] = false;
   marked_notes_count = 0;
-  if (help == HELP_CLEAR_MARKED_NOTES) help = HELP_NULL;
+  change_tutorial(TUTORIAL_CLEAR_MARKED_NOTES);
 }
 
 void down_note(Arg *arg) {
-  if (!IS_CTRL_DOWN()) down_notes[arg->i] = true;
+  if (!IS_CTRL_DOWN())
+    down_notes[arg->i] = true;
 }
 
 void mark_note(Arg *arg) {
@@ -99,8 +113,9 @@ void mark_note(Arg *arg) {
     marked_notes_count++;
   else
     marked_notes_count--;
-  if (help == HELP_PRESSED_NOTES) help = HELP_MARK_MARKED_NOTES;
-  if (help == HELP_MARK_MARKED_NOTES) help = HELP_CLEAR_MARKED_NOTES;
+  if (tutorial_segment == TUTORIAL_PRESSED_NOTES)
+    tutorial_segment = TUTORIAL_MARKED_NOTES;
+  change_tutorial(TUTORIAL_MARKED_NOTES);
 }
 
 void play_note(Arg *arg) {
@@ -108,8 +123,8 @@ void play_note(Arg *arg) {
     mark_note(arg);
     return;
   }
-  if (help == HELP_PRESSED_NOTES) help = HELP_MARK_MARKED_NOTES;
   start_timer(&pressed_notes[arg->i], pressed_note_duration);
+  change_tutorial(TUTORIAL_PRESSED_NOTES);
 }
 
 void print_screen(Arg *arg) {
@@ -124,15 +139,18 @@ void print_screen(Arg *arg) {
   TakeScreenshot(s);
 }
 
-void toggle_chord_visualization(Arg *arg) {
+void toggle_chord_notation(Arg *arg) {
   UNUSED(arg);
-  if (IS_SHIFT_DOWN())
+  if (IS_SHIFT_DOWN()) {
     if (accidental == SHARP)
       accidental = FLAT;
     else
       accidental = SHARP;
+    change_tutorial(TUTORIAL_TOGGLE_ACCIDENTAL);
+  }
   else
     abbreviate_chords = !abbreviate_chords;
+  change_tutorial(TUTORIAL_TOGGLE_CHORD_NOTATION);
 }
 
 void transpose_notes(Arg *arg) {
@@ -145,19 +163,20 @@ void transpose_notes(Arg *arg) {
     memmove(&marked_notes[first_note], &marked_notes[first_note + i], n);
     memset(&marked_notes[last_note - i + 1], false, i * sizeof(bool));
   }
+  change_tutorial(TUTORIAL_TRANSPOSE_MARKED_NOTES);
 }
 
-void show_help(Arg *arg) {
+void show_tutorial(Arg *arg) {
   UNUSED(arg);
-  help = HELP_PRESSED_NOTES;
-  show_help_notice.lifetime = 0;
+  show_tutorial_notice.lifetime = 0;
+  change_tutorial(tutorial_segment = TUTORIAL_NULL);
 }
 
 void cycle_language(Arg *arg) {
   abbreviate_chords = false;
-  help = HELP_NULL;
   language = MOD(language + arg->i, ABBREVIATED_CHORDS);
-  start_timer(&show_help_notice, show_help_notice_duration);
+  tutorial_segment = TUTORIAL_NULL;
+  start_timer(&show_tutorial_notice, show_tutorial_notice_duration);
 }
 
 void handle_keyboard_input(void) {
@@ -175,7 +194,8 @@ void update_piano(void) {
   int black_keys = 5 * octaves;
   if (carry)
     for (int i = last_note - carry + 1; i <= last_note; i++)
-      if (is_black_key[i % 12]) black_keys++;
+      if (is_black_key[i % 12])
+        black_keys++;
   int white_keys = note_total - black_keys;
 
   piano.x = screen.width / 2 - piano.width / 2;
@@ -251,8 +271,8 @@ void draw_chord_name(void) {
       break;
     }
   }
-  DrawText(chord.name, piano.x, (screen.height / 2 - piano.height / 2) - 48, 20,
-           COLOR_FOREGROUND);
+  DrawText(chord.name, piano.x, (screen.height / 2 - piano.height / 2) - 48,
+           20, COLOR_FOREGROUND);
   if (parenthesis)
     DrawText(parenthesis, piano.x, (screen.height / 2 - piano.height / 2) - 26,
              20, COLOR_FOREGROUND);
@@ -260,16 +280,18 @@ void draw_chord_name(void) {
 
 void draw_piano(void) {
   DrawRectangleRounded(piano, 0.15f, 30, COLOR_PIANO);
-  DrawRectangleRec(keyboard, GREEN);
 
-  Color text_color = Fade(BLACK, 0.2f);
+  Color text_color = Fade(COLOR_FOREGROUND, 0.2f);
   char *text = program_name;
   int text_size = 30;
-  DrawText(text, piano.x + piano.width / 2 - MeasureText(text, text_size) / 2,
+  DrawText(text,
+           piano.x + piano.width / 2 -
+               (double)MeasureText(text, text_size) / 2,
            piano.y + 3, text_size, text_color);
 
   for (int i = first_note; i <= last_note; i++) {
-    if (is_black_key[i % 12]) continue;
+    if (is_black_key[i % 12])
+      continue;
     Rectangle *key = &buttons[i].rect;
     DrawRectangleRec(buttons[i].rect, key_colors[i]);
     DrawRectangle(key->x, key->y, 1, key->height,
@@ -281,94 +303,84 @@ void draw_piano(void) {
                   Fade(key_colors[i], 0.5f));
   }
   for (int i = first_note; i <= last_note; i++) {
-    if (!is_black_key[i % 12]) continue;
+    if (!is_black_key[i % 12])
+      continue;
     DrawRectangleRec(buttons[i].rect, key_colors[i]);
   }
 }
 
-void draw_help_pt(void) {
-  char *text;
-  int text_size = 10;
-  if (!is_timer_done(&show_help_notice)) {
-    text = "Pressione F1 para mostrar ajuda.";
-    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
-             Fade(COLOR_FOREGROUND, 0.35f));
-    text = "Press F2 to change the language to English";
-    DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
-             Fade(COLOR_FOREGROUND, 0.35f));
+static inline void draw_tutorial_line(const char *text, int spacing) {
+  DrawText(text, piano.x, piano.y + piano.height + 5 + spacing, 10,
+           Fade(COLOR_FOREGROUND, 0.35f));
+}
+
+void draw_tutorial_pt(void) {
+  int line_spacing = 12;
+  if (!is_timer_done(&show_tutorial_notice)) {
+    draw_tutorial_line("Aperte F1 para mostrar o tutorial.", 0);
+    draw_tutorial_line("Press F2 to change the language to English", line_spacing);
   }
-  switch (help) {
-    case HELP_NULL:
-      break;
-    case HELP_PRESSED_NOTES:
-      text = "Use o teclado do computador ou o mouse para tocar o";
-      DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
-               Fade(COLOR_FOREGROUND, 0.35f));
-      text = "teclado musical.";
-      DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
-               Fade(COLOR_FOREGROUND, 0.35f));
-      break;
-    case HELP_MARK_MARKED_NOTES:
-      if (!marked_notes_count) {
-        text = "Segure a tecla Ctrl enquanto toca as teclas ou clique com o";
-        DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
-                 Fade(COLOR_FOREGROUND, 0.35f));
-        text = "botão direito para marcar notas.";
-        DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
-                 Fade(COLOR_FOREGROUND, 0.35f));
-      } else
-        help = HELP_CLEAR_MARKED_NOTES;
-      break;
-    case HELP_CLEAR_MARKED_NOTES:
-      if (marked_notes_count) {
-        text = "Pressione barra de espaço para limpar as notas marcadas.";
-        DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
-                 Fade(COLOR_FOREGROUND, 0.35f));
-      }
-      break;
+  switch (tutorial_segment) {
+  case TUTORIAL_NULL:
+  case TUTORIAL_FINISH:
+    break;
+  case TUTORIAL_PRESSED_NOTES:
+    draw_tutorial_line("Use o teclado do computador ou o mouse para tocar o", 0);
+    draw_tutorial_line("teclado musical.", line_spacing);
+    break;
+  case TUTORIAL_MARKED_NOTES:
+    draw_tutorial_line("Segure a tecla Ctrl enquanto toca as teclas ou clique com o", 0);
+    draw_tutorial_line("botão direito para marcar notas.", line_spacing);
+    break;
+  case TUTORIAL_TRANSPOSE_MARKED_NOTES:
+    draw_tutorial_line("Aperte a seta esquerda ou direita para transpor as notas", 0);
+    draw_tutorial_line("marcadas.", line_spacing);
+    break;
+  case TUTORIAL_TOGGLE_CHORD_NOTATION:
+    draw_tutorial_line("Aperte Tab para mudar notação dos acordes.", 0);
+    break;
+  case TUTORIAL_TOGGLE_ACCIDENTAL:
+    draw_tutorial_line("Segure Shift e aperte Tab para trocar o acidente (sustenido", 0);
+    draw_tutorial_line("e bemol).", line_spacing);
+    break;
+  case TUTORIAL_CLEAR_MARKED_NOTES:
+    draw_tutorial_line("Aperte barra de espaço para limpar as notas marcadas.", 0);
+    break;
   }
 }
 
-void draw_help_en(void) {
-  char *text;
-  int text_size = 10;
-  if (!is_timer_done(&show_help_notice)) {
-    text = "Press F1 to show help.";
-    DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
-             Fade(COLOR_FOREGROUND, 0.35f));
-    text = "Pressione F2 para mudar o idioma para português.";
-    DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
-             Fade(COLOR_FOREGROUND, 0.35f));
+void draw_tutorial_en(void) {
+  int line_spacing = 12;
+  if (!is_timer_done(&show_tutorial_notice)) {
+    draw_tutorial_line("Press F1 to show the tutorial.", 0);
+    draw_tutorial_line("Aperte F2 para mudar o idioma para português.", line_spacing);
   }
-  switch (help) {
-    case HELP_NULL:
-      break;
-    case HELP_PRESSED_NOTES:
-      text = "Use your computer keyboard or mouse to play the piano";
-      DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
-               Fade(COLOR_FOREGROUND, 0.35f));
-      text = "keyboard.";
-      DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
-               Fade(COLOR_FOREGROUND, 0.35f));
-      break;
-    case HELP_MARK_MARKED_NOTES:
-      if (!marked_notes_count) {
-        text = "Hold down the Ctrl key while playing keys or right-click";
-        DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
-                 Fade(COLOR_FOREGROUND, 0.35f));
-        text = "to mark notes.";
-        DrawText(text, piano.x, piano.y + piano.height + 17, text_size,
-                 Fade(COLOR_FOREGROUND, 0.35f));
-      } else
-        help = HELP_CLEAR_MARKED_NOTES;
-      break;
-    case HELP_CLEAR_MARKED_NOTES:
-      if (marked_notes_count) {
-        text = "Press space bar to clear marked notes.";
-        DrawText(text, piano.x, piano.y + piano.height + 5, text_size,
-                 Fade(COLOR_FOREGROUND, 0.35f));
-      }
-      break;
+  switch (tutorial_segment) {
+  case TUTORIAL_NULL:
+  case TUTORIAL_FINISH:
+    break;
+  case TUTORIAL_PRESSED_NOTES:
+    draw_tutorial_line("Use your computer keyboard or mouse to play the piano", 0);
+    draw_tutorial_line("keyboard.", line_spacing);
+    break;
+  case TUTORIAL_MARKED_NOTES:
+    draw_tutorial_line("Hold down the Ctrl key while playing keys or right-click", 0);
+    draw_tutorial_line("to mark notes.", line_spacing);
+    break;
+  case TUTORIAL_TRANSPOSE_MARKED_NOTES:
+    draw_tutorial_line("Press the left and right arrows to transpose the marked", 0);
+    draw_tutorial_line("notes.", line_spacing);
+    break;
+  case TUTORIAL_TOGGLE_CHORD_NOTATION:
+    draw_tutorial_line("Press Tab to change the chord notation.", 0);
+    break;
+  case TUTORIAL_TOGGLE_ACCIDENTAL:
+    draw_tutorial_line("Hold Shift and press Tab to change the accidental (sharp", 0);
+    draw_tutorial_line("and flat).", line_spacing);
+    break;
+  case TUTORIAL_CLEAR_MARKED_NOTES:
+    draw_tutorial_line("Press space bar to clear marked notes.", 0);
+    break;
   }
 }
 
@@ -377,21 +389,26 @@ void run(void) {
   screen.y = GetWindowPosition().y;
   screen.width = GetScreenWidth();
   screen.height = GetScreenHeight();
-  for (int i = first_note; i <= last_note; i++) down_notes[i] = false;
+  for (int i = first_note; i <= last_note; i++)
+    down_notes[i] = false;
   handle_keyboard_input();
   update_piano();
+  if (tutorial_segment == TUTORIAL_FINISH) {
+    tutorial_segment = TUTORIAL_NULL;
+    reset_config();
+  } else if (tutorial_segment > TUTORIAL_MARKED_NOTES && !marked_notes_count)
+    tutorial_segment = TUTORIAL_MARKED_NOTES;
   BeginDrawing();
   ClearBackground(COLOR_BACKGROUND);
   draw_chord_name();
   draw_piano();
-  draw_help_funcs[language]();
+  draw_tutorial_funcs[language]();
   EndDrawing();
 }
 
 int main(void) {
-  puts(
-      "This was made with raylib. "
-      "See more about here: https://www.raylib.com");
+  puts("Made by daniel.source (https://github.com/danielsource/musical) with\n"
+       "raylib. See more about raylib here: https://www.raylib.com");
   for (int i = 0; i < LENGTH(keybindings); i++)
     if (keybindings[i].pressed_func == play_note)
       keybindings[i].down_func = down_note;
@@ -403,9 +420,10 @@ int main(void) {
   SetTraceLogLevel(LOG_WARNING);
   InitWindow(screen.width, screen.height, program_title);
   SetTargetFPS(target_fps);
-  if (show_help_notice_duration)
-    start_timer(&show_help_notice, show_help_notice_duration);
-  while (!WindowShouldClose()) run();
+  if (show_tutorial_notice_duration)
+    start_timer(&show_tutorial_notice, show_tutorial_notice_duration);
+  while (!WindowShouldClose())
+    run();
   CloseWindow();
   return EXIT_SUCCESS;
 }
